@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+<script>
+(function(){
+  var k='_hrf_'+location.pathname;
+  if(!sessionStorage.getItem(k)){sessionStorage.setItem(k,'1');location.reload(true);}
+  else{sessionStorage.removeItem(k);}
+})();
+</script>
+    <title>YNL HRBP Dashboard - April 2026</title>
+    <style>
+        :root {
+            --b: #1a3a6b;
+            --b2: #2d5aa0;
+            --ink: #111827;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --bg: #f3f4f6;
+            --sidebar: 250px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', system-ui, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 14px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── HEADER ─────────────────────────────────── */
+        header {
+            background: var(--b);
+            color: #fff;
+            padding: .5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            flex-shrink: 0;
+        }
+        .hdr-brand { font-size: .92rem; font-weight: 700; }
+        .hdr-sub { font-size: .62rem; opacity: .65; margin-top: 1px; }
+        .hdr-right { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+        .hbtn {
+            border: none;
+            border-radius: 7px;
+            padding: .3rem .7rem;
+            font-size: .74rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            transition: filter .15s;
+        }
+        .hbtn:hover { filter: brightness(.88); }
+
+        /* ── LAYOUT ──────────────────────────────────── */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* ── SIDEBAR ─────────────────────────────────── */
+        .sidebar {
+            width: var(--sidebar);
+            background: #fff;
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sb-hdr {
+            padding: .75rem .85rem;
+            background: var(--b);
+            color: #fff;
+            text-align: center;
+        }
+        .sb-hdr-title { font-size: .85rem; font-weight: 700; }
+        .sb-hdr-sub { font-size: .6rem; opacity: .68; margin-top: 3px; }
+        .sb-section-label {
+            padding: .55rem .85rem .2rem;
+            font-size: .62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+        }
+        .sb-nav {
+            padding: .3rem .55rem .75rem;
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+        }
+        .sb-btn {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .58rem .8rem;
+            background: var(--b);
+            color: #fff;
+            border-radius: 8px;
+            font-size: .76rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .15s;
+            line-height: 1.35;
+        }
+        .sb-btn:hover { background: var(--b2); }
+        .sb-btn .bi { font-size: .9rem; flex-shrink: 0; }
+        .sb-footer {
+            margin-top: auto;
+            padding: .7rem .85rem;
+            font-size: .63rem;
+            color: var(--muted);
+            text-align: center;
+            border-top: 1px solid var(--line);
+            line-height: 1.55;
+        }
+
+        /* ── MAIN AREA ───────────────────────────────── */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .content-hdr {
+            padding: .55rem 1rem;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            gap: .5rem;
+        }
+        .content-hdr-title { font-weight: 700; font-size: .88rem; color: var(--b); }
+        .content-hdr-sub { font-size: .67rem; color: var(--muted); margin-top: 2px; }
+        #main-content {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+            scrollbar-width: thin;
+        }
+
+        /* ── TABLE STYLES (mirror fc_aggregator) ─────── */
+        .sec-title { font-size: .95rem; font-weight: 700; color: var(--b); margin-bottom: .15rem; }
+        .sec-sub   { font-size: .71rem; color: var(--muted); margin-bottom: .7rem; }
+        .tbl-wrap-sticky {
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 148px);
+            scrollbar-width: thin;
+        }
+        .data-tbl { border-collapse: collapse; width: 100%; font-size: .79rem; }
+        .data-tbl thead tr { background: var(--b); color: #fff; }
+        .data-tbl thead th {
+            padding: .42rem .65rem;
+            text-align: left;
+            font-size: .69rem;
+            font-weight: 700;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--b);
+        }
+        .data-tbl tbody tr { border-bottom: 1px solid var(--line); transition: background .1s; }
+        .data-tbl tbody tr:hover { background: #f0f4ff; }
+        .data-tbl tbody td { padding: .38rem .65rem; vertical-align: middle; }
+        /* preserve badge/pill colours from source */
+        .badge  { display: inline-block; padding: .14rem .42rem; border-radius: 12px; font-size: .68rem; font-weight: 700; }
+        .bk { background: #eef2ff; color: var(--b); }
+        .bg { background: #d4f8e8; color: #1a7040; }
+        .br { background: #fff0ee; color: #c0392b; }
+        .by { background: #fef9c3; color: #854d0e; }
+        .prog      { height: 7px; border-radius: 4px; background: #e5e7eb; overflow: hidden; min-width: 70px; }
+        .prog-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#03ffb7,#1a7040); }
+
+        /* ── STATUS STATES ───────────────────────────── */
+        .status-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            text-align: center;
+            gap: .55rem;
+            color: var(--muted);
+        }
+        .status-state .st-icon  { font-size: 2rem; }
+        .status-state .st-title { font-size: .9rem; font-weight: 700; color: var(--b); }
+        .status-state .st-msg   { font-size: .78rem; line-height: 1.6; }
+        .status-state.is-error .st-title { color: #c0392b; }
+
+        /* ── TOAST ───────────────────────────────────── */
+        #toast {
+            position: fixed; bottom: 1.2rem; left: 50%;
+            transform: translateX(-50%);
+            background: #111; color: #fff;
+            padding: .45rem 1.1rem; border-radius: 20px;
+            font-size: .78rem; font-weight: 600;
+            opacity: 0; pointer-events: none;
+            transition: opacity .25s; z-index: 500;
+        }
+        #toast.show { opacity: 1; }
+
+        /* ── FOOTER ──────────────────────────────────── */
+        footer {
+            background: #fff; border-top: 1px solid var(--line);
+            padding: .38rem 1.1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: .67rem; flex-shrink: 0;
+        }
+        .fl { color: var(--b); font-weight: 600; }
+        .fr { color: #c0392b; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<header>
+    <div>
+        <div class="hdr-brand">HRBP Innovation Portal</div>
+        <div class="hdr-sub">YNL Garments · Functional Competency Framework · 2026</div>
+    </div>
+    <div class="hdr-right">
+        <button class="hbtn" style="background:#4ade80;color:#000;" onclick="loadStatus()" title="Reload from updated_status folder">🔄 Refresh</button>
+    </div>
+</header>
+
+<!-- ══════════════════ LAYOUT ══════════════════ -->
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sb-hdr">
+            <div class="sb-hdr-title">Tools</div>
+            <div class="sb-hdr-sub">Select a tool to open</div>
+        </div>
+
+        <div class="sb-section-label">Applications</div>
+        <div class="sb-nav">
+            <a href="fc_aggregator_V2.2.html" class="sb-btn">
+                <span class="bi">📊</span> Role Matrix Aggregator
+            </a>
+            <a href="fc_dept_report_V2.1.html" class="sb-btn">
+                <span class="bi">📄</span> Create Dept Report V2.1
+            </a>
+            <a href="fc_dept_report_V2.2.html" class="sb-btn">
+                <span class="bi">📄</span> Create Dept Report V2.2
+            </a>
+            <a href="job_descriptions.html" class="sb-btn">
+                <span class="bi">📋</span> Job Descriptions
+            </a>
+        </div>
+
+        <div class="sb-footer">
+            Youngone's<br>Functional Competency<br>Framework 2026
+        </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+        <div class="content-hdr">
+            <div>
+                <div class="content-hdr-title">FC Framework Overview</div>
+                <div class="content-hdr-sub" id="file-info">Scanning updated_status folder…</div>
+            </div>
+            <div id="last-updated" style="font-size:.67rem;color:var(--muted);"></div>
+        </div>
+
+        <div id="main-content">
+
+            <div class="status-state" id="state-loading">
+                <div class="st-icon">⏳</div>
+                <div class="st-title">Loading…</div>
+                <div class="st-msg">Reading manifest.json</div>
+            </div>
+
+            <div id="table-container" style="display:none;"></div>
+
+            <div class="status-state is-error" id="state-error" style="display:none;">
+                <div class="st-icon">⚠️</div>
+                <div class="st-title">Could not auto-detect file</div>
+                <div class="st-msg" id="error-msg">Please select the file manually.</div>
+                <label class="hbtn" style="background:var(--b);color:#fff;margin-top:.6rem;cursor:pointer;">
+                    📂 Pick file
+                    <input type="file" accept=".html" style="display:none" onchange="loadFromPicker(this)">
+                </label>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer>
+    <span class="fl">YNL HRBP Dashboard · April 2026</span>
+    <span class="fr">Youngone's Functional Competency Framework 2026</span>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+const FOLDER = 'updated_status/';
+
+function toast(msg, dur = 2800) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._tid);
+    t._tid = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function setState(active) {
+    document.getElementById('state-loading').style.display   = active === 'loading' ? 'flex'  : 'none';
+    document.getElementById('table-container').style.display = active === 'table'   ? 'block' : 'none';
+    document.getElementById('state-error').style.display     = active === 'error'   ? 'flex'  : 'none';
+}
+
+/* ── Render: extract #main-content, strip <a> tags, inject ── */
+function renderHTML(html, filename) {
+    const parser = new DOMParser();
+    const doc    = parser.parseFromString(html, 'text/html');
+
+    // Target the main content div
+    const src = doc.querySelector('#main-content') || doc.querySelector('.tbl-wrap-sticky') || doc.querySelector('table');
+    if (!src) throw new Error('No table content found in the file.');
+
+    // Strip all <a> tags — replace with their inner text/HTML
+    src.querySelectorAll('a').forEach(a => {
+        const span = doc.createElement('span');
+        span.innerHTML = a.innerHTML;
+        a.replaceWith(span);
+    });
+
+    // Remove click handlers and interactive elements
+    src.querySelectorAll('[onclick]').forEach(el => el.removeAttribute('onclick'));
+    src.querySelectorAll('[style*="cursor"]').forEach(el => {
+        el.style.cursor = '';
+    });
+
+    const container = document.getElementById('table-container');
+    container.innerHTML = '';
+    container.appendChild(document.importNode(src, true));
+
+    document.getElementById('file-info').textContent = '📄 ' + filename;
+    setState('table');
+    toast('✅ Loaded: ' + filename);
+}
+
+/* ── Fallback: file picker ── */
+function loadFromPicker(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try { renderHTML(e.target.result, file.name); }
+        catch(err) { showError(err.message); }
+    };
+    reader.readAsText(file);
+}
+
+function showError(msg) {
+    setState('error');
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('file-info').textContent = 'Auto-detect failed — pick file manually';
+    toast('⚠️ ' + msg, 4000);
+}
+
+/* ── Main loader ── */
+async function loadStatus() {
+    setState('loading');
+    document.getElementById('file-info').textContent = 'Reading manifest…';
+    document.getElementById('last-updated').textContent = '';
+
+    try {
+        // Step 1: read manifest.json to get the current filename
+        const mRes = await fetch(FOLDER + 'manifest.json?t=' + Date.now());
+        if (!mRes.ok) throw new Error('Cannot read manifest.json (HTTP ' + mRes.status + ')');
+        const manifest = await mRes.json();
+
+        // Support both {"file":"name.html"} and {"files":["name.html"]}
+        // Always re-sort by the date+time embedded in the filename (YYYY-MM-DD_Time_HHMM)
+        // so the newest file wins regardless of version number or manifest order.
+        function dtKey(f) { const m = f.match(/_(\d{4}-\d{2}-\d{2})_Time_(\d{4})/); return m ? m[1] + m[2] : f; }
+        const fileList = Array.isArray(manifest.files) ? [...manifest.files] : [];
+        fileList.sort((a, b) => dtKey(b).localeCompare(dtKey(a)));
+        const htmlFile = manifest.file || fileList[0];
+        if (!htmlFile) throw new Error('manifest.json has no file entry.');
+
+        // Step 2: fetch the actual HTML file
+        document.getElementById('file-info').textContent = 'Loading ' + htmlFile + '…';
+        const fileRes = await fetch(FOLDER + htmlFile + '?t=' + Date.now());
+        if (!fileRes.ok) throw new Error('Could not fetch ' + htmlFile + ' (HTTP ' + fileRes.status + ')');
+        const html = await fileRes.text();
+
+        const lastMod = fileRes.headers.get('Last-Modified');
+        if (lastMod) {
+            const d = new Date(lastMod);
+            document.getElementById('last-updated').textContent =
+                'Last modified: ' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+        }
+
+        renderHTML(html, htmlFile);
+
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', loadStatus);
+</script>
+
+</body>
+</html>

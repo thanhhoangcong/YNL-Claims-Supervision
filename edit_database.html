@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC Database Editor – YNL Garments</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;background:#f0f2f5;color:#222}
+
+/* ── Header ── */
+header{background:#1e3a5f;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+header h1{font-size:1.1rem;font-weight:700;white-space:nowrap}
+#file-name{flex:1;font-size:.8rem;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:none;border-radius:6px;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s}
+.btn:disabled{opacity:.4;cursor:default;pointer-events:none}
+.btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#15803d}
+.btn-danger{background:#dc2626;color:#fff;padding:4px 9px;font-size:.76rem}.btn-danger:hover{background:#b91c1c}
+.btn-outline{background:transparent;border:1px solid #2563eb;color:#2563eb}.btn-outline:hover{background:#eff6ff}
+.btn-purple{background:#7c3aed;color:#fff}.btn-purple:hover{background:#6d28d9}
+.btn-sm{padding:4px 10px;font-size:.76rem;font-weight:700}
+
+/* ── Status bar ── */
+#status-bar{padding:8px 20px;font-size:.82rem;font-weight:600;display:none}
+#status-bar.success{background:#dcfce7;color:#166534;display:block}
+#status-bar.error{background:#fee2e2;color:#991b1b;display:block}
+#status-bar.info{background:#dbeafe;color:#1e40af;display:block}
+
+/* ── No-file placeholder ── */
+#no-file{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:14px;color:#64748b;text-align:center;padding:20px}
+#no-file svg{opacity:.25}
+#no-file p{font-size:1.05rem}
+#no-file small{font-size:.8rem;opacity:.7;max-width:400px;line-height:1.5}
+
+/* ── Editor ── */
+#editor{display:none}
+.tab-nav{display:flex;gap:0;background:#152c47;padding:0 20px;flex-wrap:wrap;border-bottom:2px solid #0f1f33}
+.tab-btn{padding:10px 18px;border:none;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;font-size:.82rem;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn:hover{color:#fff}
+.tab-btn.active{color:#60a5fa;border-bottom-color:#60a5fa}
+.tab-pane{display:none;padding:20px}
+.tab-pane.active{display:block}
+
+/* ── Section header ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.section-title{font-size:1rem;font-weight:700;color:#1e3a5f}
+.section-count{font-size:.77rem;color:#64748b;margin-left:6px;font-weight:400}
+
+/* ── Tables ── */
+.tbl-wrap{overflow-x:auto;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+table{border-collapse:collapse;width:100%;background:#fff}
+thead th{background:#1e3a5f;color:#fff;padding:9px 12px;text-align:left;font-size:.76rem;font-weight:700;white-space:nowrap}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr:hover{background:#eff6ff}
+td{padding:5px 8px;vertical-align:middle}
+td input,td select,td textarea{width:100%;border:1px solid #d1d5db;border-radius:4px;padding:4px 7px;font-size:.82rem;font-family:inherit;background:#fff}
+td input:focus,td select:focus,td textarea:focus{border-color:#2563eb;outline:none;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+td textarea{resize:vertical;min-height:52px}
+.td-action{text-align:center;width:50px}
+.td-num{width:36px;text-align:center;color:#94a3b8;font-size:.8rem}
+
+/* ── Dept sidebar layout ── */
+.dept-layout{display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:start}
+@media(max-width:640px){.dept-layout{grid-template-columns:1fr}}
+.dept-sidebar{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;position:sticky;top:56px}
+.dept-sidebar-header{padding:9px 12px;background:#f1f5f9;font-size:.76rem;font-weight:700;color:#475569;display:flex;justify-content:space-between;align-items:center}
+.dept-list{list-style:none;max-height:68vh;overflow-y:auto}
+.dept-list li{padding:0;border-left:3px solid transparent;transition:all .1s;display:flex;align-items:stretch}
+.dept-list li:hover{background:#eff6ff}
+.dept-list li.active{background:#dbeafe;border-left-color:#2563eb}
+.dept-li-name{flex:1;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 10px;font-size:.82rem}
+.dept-list li.active .dept-li-name{font-weight:600;color:#1e40af}
+.dept-li-btns{display:flex;align-items:center;gap:2px;padding:0 4px;opacity:.5;transition:opacity .1s}
+.dept-list li:hover .dept-li-btns{opacity:1}
+.dept-li-btn{border:none;border-radius:3px;cursor:pointer;font-size:.7rem;font-weight:700;padding:2px 5px;line-height:1.4}
+.dept-li-edit{background:#dbeafe;color:#1e40af}.dept-li-edit:hover{background:#bfdbfe}
+.dept-li-del{background:#fee2e2;color:#991b1b}.dept-li-del:hover{background:#fecaca}
+.dept-content{min-width:0}
+
+/* ── Role card ── */
+.role-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.role-card-header{display:flex;align-items:flex-end;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.role-card-header label{font-size:.7rem;font-weight:700;color:#64748b;white-space:nowrap;display:block;margin-bottom:2px}
+.role-card-header input{border:1px solid #d1d5db;border-radius:4px;padding:5px 8px;font-size:.82rem;font-family:inherit;width:100%}
+.role-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+@media(max-width:560px){.role-fields{grid-template-columns:1fr}}
+.field-group{display:flex;flex-direction:column;gap:2px}
+.field-group label{font-size:.7rem;font-weight:700;color:#64748b}
+.field-group input{border:1px solid #d1d5db;border-radius:4px;padding:5px 8px;font-size:.82rem;font-family:inherit}
+.comp-mini-table{width:100%;border-collapse:collapse;font-size:.79rem;margin-top:4px}
+.comp-mini-table th{background:#f1f5f9;padding:5px 8px;text-align:left;font-size:.7rem;color:#475569;font-weight:700}
+.comp-mini-table td{padding:3px 5px}
+.comp-mini-table input[type=text]{width:100%;border:1px solid #e2e8f0;border-radius:3px;padding:3px 6px;font-size:.79rem}
+.comp-mini-table input[type=number]{width:54px;border:1px solid #e2e8f0;border-radius:3px;padding:3px 5px;font-size:.79rem;text-align:center}
+.comp-mini-table tr:hover{background:#f8fafc}
+.comp-mini-label{font-size:.7rem;font-weight:700;color:#475569;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Comp def card ── */
+.compdef-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:12px}
+.compdef-card-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.compdef-no{width:50px;border:1px solid #d1d5db;border-radius:4px;padding:5px 8px;font-size:.82rem;text-align:center}
+.compdef-name{flex:1;border:1px solid #d1d5db;border-radius:4px;padding:5px 8px;font-size:.83rem;font-family:inherit;min-width:180px}
+.levels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+@media(max-width:700px){.levels-grid{grid-template-columns:1fr}}
+.level-box label{font-size:.69rem;font-weight:700;color:#2563eb;display:block;margin-bottom:3px}
+.level-box textarea{width:100%;border:1px solid #d1d5db;border-radius:4px;padding:5px 7px;font-size:.76rem;font-family:inherit;resize:vertical;min-height:80px}
+.def-row{margin-bottom:8px}
+.def-row label{font-size:.7rem;font-weight:700;color:#64748b;display:block;margin-bottom:3px}
+.def-row textarea{width:100%;border:1px solid #d1d5db;border-radius:4px;padding:6px 8px;font-size:.8rem;font-family:inherit;resize:vertical;min-height:60px}
+
+/* ── Info note ── */
+.info-note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 14px;font-size:.81rem;color:#1e40af;margin-bottom:14px;line-height:1.5}
+
+/* ── Rename modal ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-backdrop.hidden{display:none}
+.modal{background:#fff;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.22);width:100%;max-width:560px;overflow:hidden}
+.modal-header{background:#1e3a5f;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-size:.95rem;font-weight:700}
+.modal-close{background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;opacity:.7;line-height:1;padding:2px 6px}
+.modal-close:hover{opacity:1}
+.modal-body{padding:18px 20px}
+.rn-field{margin-bottom:14px}
+.rn-field label{display:block;font-size:.76rem;font-weight:700;color:#1e3a5f;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.rn-field input{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:8px 11px;font-size:.9rem;font-family:inherit}
+.rn-field input:focus{border-color:#2563eb;outline:none;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+.rn-results-wrap{margin-bottom:14px}
+.rn-results-label{font-size:.74rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.rn-table{width:100%;border-collapse:collapse;font-size:.81rem;border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.rn-table th{background:#f1f5f9;padding:7px 10px;text-align:left;font-size:.72rem;font-weight:700;color:#475569}
+.rn-table td{padding:6px 10px;border-top:1px solid #f1f5f9;vertical-align:middle}
+.rn-table td:first-child{font-weight:600;color:#374151;white-space:nowrap;width:130px}
+.rn-status-found{color:#16a34a;font-weight:700;font-size:.8rem}
+.rn-status-miss{color:#d97706;font-weight:700;font-size:.8rem}
+.rn-alt-input{width:100%;border:1px solid #fde68a;border-radius:4px;padding:4px 8px;font-size:.8rem;font-family:inherit;background:#fefce8}
+.rn-alt-input:focus{border-color:#f59e0b;outline:none;box-shadow:0 0 0 2px rgba(245,158,11,.15)}
+.rn-alt-input::placeholder{color:#a16207;font-style:italic;font-size:.76rem}
+.rn-hint{font-size:.73rem;color:#6b7280;margin-top:10px;line-height:1.5;padding:8px 10px;background:#f9fafb;border-radius:5px;border:1px solid #e5e7eb}
+.modal-footer{padding:12px 20px;background:#f8fafc;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #e2e8f0}
+
+/* ── Misc ── */
+.add-row-bar{margin-top:10px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:700}
+.badge-done{background:#dcfce7;color:#166534}
+.badge-ip{background:#fef9c3;color:#854d0e}
+.badge-empty{background:#f1f5f9;color:#64748b}
+datalist{display:none}
+</style>
+</head>
+<body>
+
+<datalist id="bu-list">
+  <option value="Office"><option value="YNL Office"><option value="Garment"><option value="Garment Supporting">
+</datalist>
+<datalist id="jf-list">
+  <option value="Administration"><option value="HR"><option value="Production"><option value="Accounts & Finance">
+  <option value="Sales"><option value="IT"><option value="Quality"><option value="Planning">
+</datalist>
+
+<header>
+  <h1>FC Database Editor</h1>
+  <span id="file-name">No file loaded</span>
+  <input type="file" id="file-input" accept=".html" style="display:none">
+  <button class="btn btn-primary" id="btn-open">&#128193; Open database.html</button>
+  <button class="btn btn-purple" id="btn-rename-dept" disabled onclick="renameDeptEverywhere()" title="Rename a department across all sections">&#9998; Rename Dept</button>
+  <button class="btn btn-success" id="btn-save" disabled>&#128190; Save Changes</button>
+</header>
+
+<div id="status-bar"></div>
+
+<!-- ── Rename Modal ── -->
+<div class="modal-backdrop hidden" id="rename-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rename-modal-title">
+    <div class="modal-header">
+      <h2 id="rename-modal-title">&#9998; Rename Department Everywhere</h2>
+      <button class="modal-close" onclick="closeRenameModal()" title="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="rn-field">
+        <label>Current name to rename</label>
+        <input type="text" id="rn-search" list="rn-all-list" placeholder="Type or pick a department name…" autocomplete="off" oninput="rnLookup()">
+        <datalist id="rn-all-list"></datalist>
+      </div>
+
+      <div class="rn-results-wrap">
+        <div class="rn-results-label">Found in sections</div>
+        <table class="rn-table">
+          <thead><tr><th>Section</th><th>Status</th><th>Rename from</th></tr></thead>
+          <tbody id="rn-tbody">
+            <tr id="rn-row-tf">
+              <td>Task Force</td>
+              <td id="rn-st-tf"  class="rn-status-miss">—</td>
+              <td><input class="rn-alt-input" id="rn-alt-tf"  list="rn-list-tf"  placeholder="not found — type alternate name if needed" autocomplete="off"><datalist id="rn-list-tf"></datalist></td>
+            </tr>
+            <tr id="rn-row-rm">
+              <td>Roles Matrix</td>
+              <td id="rn-st-rm"  class="rn-status-miss">—</td>
+              <td><input class="rn-alt-input" id="rn-alt-rm"  list="rn-list-rm"  placeholder="not found — type alternate name if needed" autocomplete="off"><datalist id="rn-list-rm"></datalist></td>
+            </tr>
+            <tr id="rn-row-cbd">
+              <td>Comp by Dept</td>
+              <td id="rn-st-cbd" class="rn-status-miss">—</td>
+              <td><input class="rn-alt-input" id="rn-alt-cbd" list="rn-list-cbd" placeholder="not found — type alternate name if needed" autocomplete="off"><datalist id="rn-list-cbd"></datalist></td>
+            </tr>
+            <tr id="rn-row-cd">
+              <td>Competency Defs</td>
+              <td id="rn-st-cd"  class="rn-status-miss">—</td>
+              <td><input class="rn-alt-input" id="rn-alt-cd"  list="rn-list-cd"  placeholder="not found — type alternate name if needed" autocomplete="off"><datalist id="rn-list-cd"></datalist></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="rn-hint">
+          ✅ <strong>Found</strong> — will be renamed automatically.<br>
+          ⚠ <strong>Not found</strong> — leave blank to skip, or type the name used in that section (e.g. "Accounting - Finance" in Task Force vs "AF" elsewhere).
+        </div>
+      </div>
+
+      <div class="rn-field">
+        <label>New name</label>
+        <input type="text" id="rn-new" placeholder="e.g. Accounting &amp; Finance" autocomplete="off">
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeRenameModal()">Cancel</button>
+      <button class="btn btn-purple" onclick="doRename()">&#9998; Rename All</button>
+    </div>
+  </div>
+</div>
+
+<div id="no-file">
+  <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+  </svg>
+  <p>Click <strong>Open database.html</strong> to start editing.</p>
+  <small>Supports Chrome/Edge File System API for direct save-in-place, or falls back to download in other browsers.</small>
+</div>
+
+<div id="editor">
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="taskforce">Task Force</button>
+    <button class="tab-btn" data-tab="progression">Progression</button>
+    <button class="tab-btn" data-tab="roles">Roles Matrix</button>
+    <button class="tab-btn" data-tab="compbydept">Comp by Dept</button>
+    <button class="tab-btn" data-tab="compdefs">Competency Defs</button>
+  </nav>
+
+  <!-- ── Tab: Task Force ── -->
+  <div class="tab-pane active" id="pane-taskforce">
+    <div class="section-header">
+      <div><span class="section-title">Task Force</span><span class="section-count" id="tf-count"></span></div>
+      <button class="btn btn-outline btn-sm" onclick="tfAddRow()">+ Add Row</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Department</th><th>PIC</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tf-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Tab: Progression ── -->
+  <div class="tab-pane" id="pane-progression">
+    <div class="section-header">
+      <div><span class="section-title">Progression</span><span class="section-count" id="prog-count"></span></div>
+      <button class="btn btn-outline btn-sm" onclick="progAddRow()">+ Add Row</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Plant</th><th>Action</th><th>Schedule</th><th>Progress (0–1)</th><th></th></tr></thead>
+        <tbody id="prog-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Tab: Roles Matrix ── -->
+  <div class="tab-pane" id="pane-roles">
+    <div class="info-note">Select a department to view and edit its roles. Each role shows basic info and a competency level table. Data is saved automatically when you switch departments.</div>
+    <div class="dept-layout">
+      <div class="dept-sidebar">
+        <div class="dept-sidebar-header">
+          Departments
+          <button class="btn btn-outline btn-sm" onclick="addDept('roles')" style="font-size:.69rem;padding:2px 7px">+ Add</button>
+        </div>
+        <ul class="dept-list" id="roles-dept-list"></ul>
+      </div>
+      <div class="dept-content" id="roles-dept-content"><p style="color:#94a3b8;padding:20px">Select a department →</p></div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Comp by Dept ── -->
+  <div class="tab-pane" id="pane-compbydept">
+    <div class="info-note">Select a department to view and edit its competency list (name, type, remarks, status). Data is saved automatically when you switch departments.</div>
+    <div class="dept-layout">
+      <div class="dept-sidebar">
+        <div class="dept-sidebar-header">
+          Departments
+          <button class="btn btn-outline btn-sm" onclick="addDept('cbd')" style="font-size:.69rem;padding:2px 7px">+ Add</button>
+        </div>
+        <ul class="dept-list" id="cbd-dept-list"></ul>
+      </div>
+      <div class="dept-content" id="cbd-dept-content"><p style="color:#94a3b8;padding:20px">Select a department →</p></div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Competency Defs ── -->
+  <div class="tab-pane" id="pane-compdefs">
+    <div class="info-note">Select a department to view and edit its competency definitions (name, definition, and 6 proficiency levels). Data is saved automatically when you switch departments.</div>
+    <div class="dept-layout">
+      <div class="dept-sidebar">
+        <div class="dept-sidebar-header">
+          Departments
+          <button class="btn btn-outline btn-sm" onclick="addDept('cd')" style="font-size:.69rem;padding:2px 7px">+ Add</button>
+        </div>
+        <ul class="dept-list" id="cd-dept-list"></ul>
+      </div>
+      <div class="dept-content" id="cd-dept-content"><p style="color:#94a3b8;padding:20px">Select a department →</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   State
+═══════════════════════════════════════════ */
+let fileHandle   = null;
+let originalHtml = '';
+let DATA         = null;
+let DICT_DATA    = null;
+
+const TF_STATUS      = ['Done', 'In-progress', ''];
+const COMP_TYPES     = ['OLC', 'FC', 'JSC'];
+const REMARKS_VALUES = ['Common', 'Unique'];
+const CBD_STATUS     = ['Done', 'In-progress', ''];
+
+/* ═══════════════════════════════════════════
+   Utilities
+═══════════════════════════════════════════ */
+function esc(s){
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showStatus(msg, type = 'info'){
+  const bar = document.getElementById('status-bar');
+  bar.className = type;
+  bar.textContent = msg;
+  bar.style.display = 'block';
+  if(type === 'success') setTimeout(() => { bar.style.display = 'none'; }, 4000);
+}
+
+function selOpts(arr, val, allowEmpty = true){
+  let s = '';
+  if(allowEmpty && !arr.includes('')) s += `<option value=""${val===''?' selected':''}></option>`;
+  s += arr.filter(o => o !== '').map(o =>
+    `<option value="${esc(o)}"${o === val ? ' selected' : ''}>${esc(o)}</option>`
+  ).join('');
+  if(!arr.includes(val) && val !== '') s += `<option value="${esc(val)}" selected>${esc(val)}</option>`;
+  return s;
+}
+
+/* ═══════════════════════════════════════════
+   File open / save
+═══════════════════════════════════════════ */
+document.getElementById('btn-open').onclick = async () => {
+  if(window.showOpenFilePicker){
+    try{
+      [fileHandle] = await window.showOpenFilePicker({
+        types: [{ description: 'HTML Files', accept: { 'text/html': ['.html'] } }]
+      });
+      const file = await fileHandle.getFile();
+      originalHtml = await file.text();
+      document.getElementById('file-name').textContent = file.name;
+    } catch(e) {
+      if(e.name !== 'AbortError') showStatus('Open error: ' + e.message, 'error');
+      return;
+    }
+  } else {
+    document.getElementById('file-input').click();
+    return;
+  }
+  loadData();
+};
+
+document.getElementById('file-input').onchange = async e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  originalHtml = await file.text();
+  document.getElementById('file-name').textContent = file.name + ' (download to save)';
+  loadData();
+};
+
+document.getElementById('btn-save').onclick = async () => {
+  if(!DATA) return;
+  collectAll();
+
+  let newHtml = originalHtml.replace(/^const DATA = .+;$/m, `const DATA = ${JSON.stringify(DATA)};`);
+  if(DICT_DATA) newHtml = newHtml.replace(/^const DICT_DATA = .+;$/m, `const DICT_DATA = ${JSON.stringify(DICT_DATA)};`);
+
+  // Verify the replacement actually happened
+  if(newHtml === originalHtml && !DICT_DATA){
+    showStatus('Warning: Could not locate "const DATA" line to replace. File unchanged.', 'error');
+    return;
+  }
+
+  if(fileHandle){
+    try{
+      const writable = await fileHandle.createWritable();
+      await writable.write(newHtml);
+      await writable.close();
+      originalHtml = newHtml;
+      showStatus('Saved successfully to ' + (await fileHandle.getFile()).name, 'success');
+    } catch(e) {
+      showStatus('Save error: ' + e.message, 'error');
+    }
+  } else {
+    const blob = new Blob([newHtml], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'database.html';
+    a.click();
+    showStatus('Downloaded – replace your original database.html file with this download.', 'info');
+  }
+};
+
+function loadData(){
+  const m = originalHtml.match(/^const DATA = (.+);$/m);
+  if(!m){
+    showStatus('Could not find "const DATA" in the file. Make sure you opened the correct database.html.', 'error');
+    return;
+  }
+  try { DATA = JSON.parse(m[1]); }
+  catch(e) { showStatus('JSON parse error: ' + e.message, 'error'); return; }
+
+  // Optional DICT_DATA
+  const md = originalHtml.match(/^const DICT_DATA = (.+);$/m);
+  if(md){ try { DICT_DATA = JSON.parse(md[1]); } catch(e) { DICT_DATA = null; } }
+
+  // Ensure all sections exist (guard against partial files)
+  DATA.taskForce      = DATA.taskForce      || [];
+  DATA.progression    = DATA.progression    || [];
+  DATA.rolesMatrix    = DATA.rolesMatrix    || {};
+  DATA.compByDept     = DATA.compByDept     || {};
+  DATA.competencyDefs = DATA.competencyDefs || {};
+
+  renderAll();
+  document.getElementById('no-file').style.display = 'none';
+  document.getElementById('editor').style.display  = 'block';
+  document.getElementById('btn-save').disabled          = false;
+  document.getElementById('btn-rename-dept').disabled   = false;
+  showStatus('File loaded. Make your edits then click Save.', 'info');
+}
+
+/* ═══════════════════════════════════════════
+   Tab switching
+═══════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+  };
+});
+
+/* ═══════════════════════════════════════════
+   Render all
+═══════════════════════════════════════════ */
+function renderAll(){
+  renderTaskForce();
+  renderProgression();
+  renderRoles();
+  renderCompByDept();
+  renderCompDefs();
+}
+
+/* ═══════════════════════════════════════════
+   Dept sidebar helper
+═══════════════════════════════════════════ */
+function deptLiHtml(d, section){
+  const selectFn = { roles:'selectRolesDept', cbd:'selectCbdDept', cd:'selectCdDept' }[section];
+  const editFn   = { roles:'editRolesDept',   cbd:'editCbdDept',   cd:'editCdDept'   }[section];
+  const delFn    = { roles:'deleteRolesDept', cbd:'deleteCbdDept', cd:'deleteCdDept' }[section];
+  return `<li data-dept="${esc(d)}">
+    <span class="dept-li-name" onclick="${selectFn}('${esc(d)}')">${esc(d)}</span>
+    <span class="dept-li-btns">
+      <button class="dept-li-btn dept-li-edit" onclick="${editFn}('${esc(d)}')" title="Rename">✎</button>
+      <button class="dept-li-btn dept-li-del"  onclick="${delFn}('${esc(d)}')"  title="Delete">✕</button>
+    </span>
+  </li>`;
+}
+
+/* ═══════════════════════════════════════════
+   1. Task Force
+═══════════════════════════════════════════ */
+function renderTaskForce(){
+  const tbody = document.getElementById('tf-tbody');
+  tbody.innerHTML = DATA.taskForce.map((r, i) => `
+    <tr>
+      <td class="td-num">${i + 1}</td>
+      <td><input type="text" class="tf-dept" value="${esc(r.department)}"></td>
+      <td><input type="text" class="tf-pic"  value="${esc(r.pic)}" style="max-width:120px"></td>
+      <td>
+        <select class="tf-status">
+          ${selOpts(TF_STATUS, r.status, false)}
+        </select>
+      </td>
+      <td class="td-action">
+        <button class="btn btn-danger" onclick="this.closest('tr').remove();tfRenum()" title="Delete row">✕</button>
+      </td>
+    </tr>`).join('');
+  tfRenum();
+}
+
+function tfRenum(){
+  const rows = document.querySelectorAll('#tf-tbody tr');
+  rows.forEach((r, i) => r.cells[0].textContent = i + 1);
+  document.getElementById('tf-count').textContent = `(${rows.length} departments)`;
+}
+
+function tfAddRow(){
+  const tbody = document.getElementById('tf-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="td-num"></td>
+    <td><input type="text" class="tf-dept" placeholder="Department name"></td>
+    <td><input type="text" class="tf-pic"  placeholder="PIC" style="max-width:120px"></td>
+    <td>
+      <select class="tf-status">
+        ${selOpts(TF_STATUS, '', false)}
+      </select>
+    </td>
+    <td class="td-action">
+      <button class="btn btn-danger" onclick="this.closest('tr').remove();tfRenum()" title="Delete row">✕</button>
+    </td>`;
+  tbody.appendChild(tr);
+  tfRenum();
+  tr.querySelector('input').focus();
+}
+
+function collectTaskForce(){
+  DATA.taskForce = [];
+  document.querySelectorAll('#tf-tbody tr').forEach(tr => {
+    DATA.taskForce.push({
+      department: tr.querySelector('.tf-dept').value.trim(),
+      pic:        tr.querySelector('.tf-pic').value.trim(),
+      status:     tr.querySelector('.tf-status').value
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════
+   2. Progression
+═══════════════════════════════════════════ */
+function renderProgression(){
+  const tbody = document.getElementById('prog-tbody');
+  tbody.innerHTML = DATA.progression.map((r, i) => `
+    <tr>
+      <td class="td-num">${i + 1}</td>
+      <td><input type="text" class="pg-plant" value="${esc(r.plant)}"></td>
+      <td><input type="text" class="pg-action" value="${esc(r.action)}"></td>
+      <td><input type="text" class="pg-schedule" value="${esc(r.schedule)}" style="max-width:160px"></td>
+      <td><input type="number" class="pg-progress" value="${r.progress}" min="0" max="1" step="0.05" style="max-width:80px;text-align:center"></td>
+      <td class="td-action">
+        <button class="btn btn-danger" onclick="this.closest('tr').remove();progRenum()" title="Delete row">✕</button>
+      </td>
+    </tr>`).join('');
+  progRenum();
+}
+
+function progRenum(){
+  const rows = document.querySelectorAll('#prog-tbody tr');
+  rows.forEach((r, i) => r.cells[0].textContent = i + 1);
+  document.getElementById('prog-count').textContent = `(${rows.length} steps)`;
+}
+
+function progAddRow(){
+  const tbody = document.getElementById('prog-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="td-num"></td>
+    <td><input type="text" class="pg-plant" placeholder="Plant"></td>
+    <td><input type="text" class="pg-action" placeholder="Action description"></td>
+    <td><input type="text" class="pg-schedule" placeholder="e.g. Jan 2025" style="max-width:160px"></td>
+    <td><input type="number" class="pg-progress" value="0" min="0" max="1" step="0.05" style="max-width:80px;text-align:center"></td>
+    <td class="td-action">
+      <button class="btn btn-danger" onclick="this.closest('tr').remove();progRenum()" title="Delete row">✕</button>
+    </td>`;
+  tbody.appendChild(tr);
+  progRenum();
+  tr.querySelector('input').focus();
+}
+
+function collectProgression(){
+  DATA.progression = [];
+  document.querySelectorAll('#prog-tbody tr').forEach(tr => {
+    DATA.progression.push({
+      plant:    tr.querySelector('.pg-plant').value,
+      action:   tr.querySelector('.pg-action').value,
+      schedule: tr.querySelector('.pg-schedule').value,
+      progress: parseFloat(tr.querySelector('.pg-progress').value) || 0
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════
+   3. Roles Matrix
+═══════════════════════════════════════════ */
+let rolesActiveDept = null;
+
+function renderRoles(){
+  const depts = Object.keys(DATA.rolesMatrix).sort((a, b) => a.localeCompare(b));
+  const list = document.getElementById('roles-dept-list');
+  list.innerHTML = depts.map(d => deptLiHtml(d, 'roles')).join('');
+  rolesActiveDept = null;
+  const content = document.getElementById('roles-dept-content');
+  if(depts.length){
+    selectRolesDept(depts[0]);
+  } else {
+    content.innerHTML = '<p style="color:#94a3b8;padding:20px">No departments yet. Click + Add.</p>';
+  }
+}
+
+function selectRolesDept(dept){
+  // Collect current dept before switching
+  if(rolesActiveDept && rolesActiveDept !== dept) collectRolesDept(rolesActiveDept);
+
+  rolesActiveDept = dept;
+  document.querySelectorAll('#roles-dept-list li').forEach(li =>
+    li.classList.toggle('active', li.dataset.dept === dept)
+  );
+
+  const roles = DATA.rolesMatrix[dept] || [];
+  const c = document.getElementById('roles-dept-content');
+  c.innerHTML = `
+    <div class="section-header">
+      <div><span class="section-title">${esc(dept)}</span><span class="section-count">${roles.length} role(s)</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger btn-sm" onclick="deleteRolesDept('${esc(dept)}')">✕ Delete Dept</button>
+        <button class="btn btn-outline btn-sm" onclick="rolesAddRole('${esc(dept)}')">+ Add Role</button>
+      </div>
+    </div>
+    <div id="roles-cards-${esc(dept)}">
+      ${roles.map((r, i) => rolesCardHtml(dept, i, r)).join('')}
+    </div>`;
+}
+
+function rolesCardHtml(dept, idx, r){
+  const compRows = Object.entries(r.competencies || {}).map(([name, lvl]) => `
+    <tr>
+      <td><input type="text" class="comp-name" value="${esc(name)}" placeholder="Competency name"></td>
+      <td><input type="number" class="comp-level" value="${lvl}" min="0" max="6" step="1"></td>
+      <td class="td-action" style="width:36px">
+        <button class="btn btn-danger" onclick="this.closest('tr').remove()" title="Remove">✕</button>
+      </td>
+    </tr>`).join('');
+
+  return `
+    <div class="role-card" id="role-card-${esc(dept)}-${idx}">
+      <div class="role-card-header">
+        <div style="flex:0 0 140px">
+          <label>FC Code</label>
+          <input type="text" class="role-code" value="${esc(r.code)}" placeholder="VN/NV/OF/IT/01">
+        </div>
+        <div style="flex:1">
+          <label>Role Title</label>
+          <input type="text" class="role-name" value="${esc(r.role)}" placeholder="e.g. Manager">
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.role-card').remove()" style="align-self:flex-end;margin-bottom:0">✕ Remove Role</button>
+      </div>
+      <div class="role-fields">
+        <div class="field-group">
+          <label>Business Unit</label>
+          <input type="text" class="role-bu" list="bu-list" value="${esc(r.businessUnit)}" placeholder="Office">
+        </div>
+        <div class="field-group">
+          <label>Job Family</label>
+          <input type="text" class="role-jf" list="jf-list" value="${esc(r.jobFamily)}" placeholder="Administration">
+        </div>
+      </div>
+      <div class="comp-mini-label">Competency Requirements</div>
+      <table class="comp-mini-table">
+        <thead><tr><th>Competency Name</th><th>Level (0–6)</th><th></th></tr></thead>
+        <tbody class="comp-rows">${compRows}</tbody>
+      </table>
+      <div style="margin-top:6px">
+        <button class="btn btn-outline btn-sm" onclick="rolesAddComp(this)">+ Add Competency</button>
+      </div>
+    </div>`;
+}
+
+function rolesAddComp(btn){
+  const tbody = btn.closest('.role-card').querySelector('.comp-rows');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="comp-name" placeholder="Competency name"></td>
+    <td><input type="number" class="comp-level" value="3" min="0" max="6" step="1"></td>
+    <td class="td-action" style="width:36px">
+      <button class="btn btn-danger" onclick="this.closest('tr').remove()">✕</button>
+    </td>`;
+  tbody.appendChild(tr);
+  tr.querySelector('input').focus();
+}
+
+function rolesAddRole(dept){
+  const container = document.getElementById('roles-cards-' + dept);
+  const idx = container.querySelectorAll('.role-card').length;
+  const dummy = { code:'', role:'', businessUnit:'Office', jobFamily:'Administration', competencies:{} };
+  const div = document.createElement('div');
+  div.innerHTML = rolesCardHtml(dept, idx, dummy);
+  container.appendChild(div.firstElementChild);
+  // Update count
+  const count = container.querySelectorAll('.role-card').length;
+  container.closest('.dept-content').querySelector('.section-count').textContent = count + ' role(s)';
+}
+
+function collectRolesDept(dept){
+  const container = document.getElementById('roles-cards-' + dept);
+  if(!container) return;
+  const roles = [];
+  container.querySelectorAll('.role-card').forEach(card => {
+    const competencies = {};
+    card.querySelectorAll('.comp-rows tr').forEach(tr => {
+      const name  = tr.querySelector('.comp-name')?.value?.trim();
+      const level = parseInt(tr.querySelector('.comp-level')?.value);
+      if(name) competencies[name] = isNaN(level) ? 1 : level;
+    });
+    roles.push({
+      code:         card.querySelector('.role-code').value.trim(),
+      role:         card.querySelector('.role-name').value.trim(),
+      businessUnit: card.querySelector('.role-bu').value.trim(),
+      jobFamily:    card.querySelector('.role-jf').value.trim(),
+      competencies
+    });
+  });
+  DATA.rolesMatrix[dept] = roles;
+}
+
+function deleteRolesDept(dept){
+  if(!confirm(`Delete department "${dept}" and all its roles from Roles Matrix?`)) return;
+  delete DATA.rolesMatrix[dept];
+  if(rolesActiveDept === dept) rolesActiveDept = null;
+  renderRoles();
+}
+
+function editRolesDept(oldName){
+  const newName = prompt('Rename department:', oldName);
+  if(!newName || !newName.trim() || newName.trim() === oldName) return;
+  const n = newName.trim();
+  if(DATA.rolesMatrix[n]){ alert(`A department named "${n}" already exists.`); return; }
+  collectRolesDept(oldName);
+  DATA.rolesMatrix[n] = DATA.rolesMatrix[oldName];
+  delete DATA.rolesMatrix[oldName];
+  if(rolesActiveDept === oldName) rolesActiveDept = n;
+  renderRoles();
+  selectRolesDept(n);
+}
+
+function collectRolesMatrix(){
+  // Collect the currently displayed dept (others were collected on dept switch)
+  if(rolesActiveDept) collectRolesDept(rolesActiveDept);
+}
+
+/* ═══════════════════════════════════════════
+   4. Comp by Dept
+═══════════════════════════════════════════ */
+let cbdActiveDept = null;
+
+function renderCompByDept(){
+  const depts = Object.keys(DATA.compByDept).sort((a, b) => a.localeCompare(b));
+  const list = document.getElementById('cbd-dept-list');
+  list.innerHTML = depts.map(d => deptLiHtml(d, 'cbd')).join('');
+  cbdActiveDept = null;
+  const content = document.getElementById('cbd-dept-content');
+  if(depts.length){
+    selectCbdDept(depts[0]);
+  } else {
+    content.innerHTML = '<p style="color:#94a3b8;padding:20px">No departments yet. Click + Add.</p>';
+  }
+}
+
+function selectCbdDept(dept){
+  if(cbdActiveDept && cbdActiveDept !== dept) collectCbdDept(cbdActiveDept);
+  cbdActiveDept = dept;
+  document.querySelectorAll('#cbd-dept-list li').forEach(li =>
+    li.classList.toggle('active', li.dataset.dept === dept)
+  );
+
+  const items = DATA.compByDept[dept] || [];
+  const c = document.getElementById('cbd-dept-content');
+  c.innerHTML = `
+    <div class="section-header">
+      <div><span class="section-title">${esc(dept)}</span><span class="section-count">${items.length} competencies</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger btn-sm" onclick="deleteCbdDept('${esc(dept)}')">✕ Delete Dept</button>
+        <button class="btn btn-outline btn-sm" onclick="cbdAddRow('${esc(dept)}')">+ Add Competency</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Remarks</th><th>Status</th><th></th></tr></thead>
+        <tbody id="cbd-tbody-${esc(dept)}">
+          ${items.map((it, i) => `
+            <tr>
+              <td class="td-num">${i + 1}</td>
+              <td><input type="text" class="cbd-name" value="${esc(it.name)}"></td>
+              <td>
+                <select class="cbd-type">
+                  ${selOpts(COMP_TYPES, it.type, false)}
+                </select>
+              </td>
+              <td>
+                <select class="cbd-remarks">
+                  ${selOpts(REMARKS_VALUES, it.remarks, false)}
+                </select>
+              </td>
+              <td>
+                <select class="cbd-status">
+                  ${selOpts(CBD_STATUS, it.status, false)}
+                </select>
+              </td>
+              <td class="td-action">
+                <button class="btn btn-danger" onclick="this.closest('tr').remove();cbdRenum('${esc(dept)}')" title="Delete">✕</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function cbdRenum(dept){
+  const tbody = document.getElementById('cbd-tbody-' + dept);
+  if(!tbody) return;
+  tbody.querySelectorAll('tr').forEach((r, i) => r.cells[0].textContent = i + 1);
+}
+
+function cbdAddRow(dept){
+  const tbody = document.getElementById('cbd-tbody-' + dept);
+  if(!tbody) return;
+  const tr = document.createElement('tr');
+  const n = tbody.querySelectorAll('tr').length + 1;
+  tr.innerHTML = `
+    <td class="td-num">${n}</td>
+    <td><input type="text" class="cbd-name" placeholder="Competency name"></td>
+    <td><select class="cbd-type">${selOpts(COMP_TYPES, 'OLC', false)}</select></td>
+    <td><select class="cbd-remarks">${selOpts(REMARKS_VALUES, 'Common', false)}</select></td>
+    <td><select class="cbd-status">${selOpts(CBD_STATUS, '', false)}</select></td>
+    <td class="td-action">
+      <button class="btn btn-danger" onclick="this.closest('tr').remove();cbdRenum('${esc(dept)}')" title="Delete">✕</button>
+    </td>`;
+  tbody.appendChild(tr);
+  tr.querySelector('input').focus();
+}
+
+function collectCbdDept(dept){
+  const tbody = document.getElementById('cbd-tbody-' + dept);
+  if(!tbody) return;
+  DATA.compByDept[dept] = [];
+  tbody.querySelectorAll('tr').forEach(tr => {
+    DATA.compByDept[dept].push({
+      name:    tr.querySelector('.cbd-name').value,
+      type:    tr.querySelector('.cbd-type').value,
+      remarks: tr.querySelector('.cbd-remarks').value,
+      status:  tr.querySelector('.cbd-status').value
+    });
+  });
+}
+
+function deleteCbdDept(dept){
+  if(!confirm(`Delete department "${dept}" and all its competencies from Comp by Dept?`)) return;
+  delete DATA.compByDept[dept];
+  if(cbdActiveDept === dept) cbdActiveDept = null;
+  renderCompByDept();
+}
+
+function editCbdDept(oldName){
+  const newName = prompt('Rename department:', oldName);
+  if(!newName || !newName.trim() || newName.trim() === oldName) return;
+  const n = newName.trim();
+  if(DATA.compByDept[n]){ alert(`A department named "${n}" already exists.`); return; }
+  if(cbdActiveDept === oldName) collectCbdDept(oldName);
+  DATA.compByDept[n] = DATA.compByDept[oldName];
+  delete DATA.compByDept[oldName];
+  if(cbdActiveDept === oldName) cbdActiveDept = n;
+  renderCompByDept();
+  selectCbdDept(n);
+}
+
+function collectCompByDept(){
+  if(cbdActiveDept) collectCbdDept(cbdActiveDept);
+}
+
+/* ═══════════════════════════════════════════
+   5. Competency Defs
+═══════════════════════════════════════════ */
+let cdActiveDept = null;
+
+function renderCompDefs(){
+  const depts = Object.keys(DATA.competencyDefs).sort((a, b) => a.localeCompare(b));
+  const list = document.getElementById('cd-dept-list');
+  list.innerHTML = depts.map(d => deptLiHtml(d, 'cd')).join('');
+  cdActiveDept = null;
+  const content = document.getElementById('cd-dept-content');
+  if(depts.length){
+    selectCdDept(depts[0]);
+  } else {
+    content.innerHTML = '<p style="color:#94a3b8;padding:20px">No departments yet. Click + Add.</p>';
+  }
+}
+
+function selectCdDept(dept){
+  if(cdActiveDept && cdActiveDept !== dept) collectCdDept(cdActiveDept);
+  cdActiveDept = dept;
+  document.querySelectorAll('#cd-dept-list li').forEach(li =>
+    li.classList.toggle('active', li.dataset.dept === dept)
+  );
+
+  const items = DATA.competencyDefs[dept] || [];
+  const c = document.getElementById('cd-dept-content');
+  c.innerHTML = `
+    <div class="section-header">
+      <div><span class="section-title">${esc(dept)}</span><span class="section-count">${items.length} definitions</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger btn-sm" onclick="deleteCdDept('${esc(dept)}')">✕ Delete Dept</button>
+        <button class="btn btn-outline btn-sm" onclick="cdAddCard('${esc(dept)}')">+ Add Competency</button>
+      </div>
+    </div>
+    <div id="cd-cards-${esc(dept)}">
+      ${items.map((it, i) => cdCardHtml(dept, i, it)).join('')}
+    </div>`;
+}
+
+function cdCardHtml(dept, idx, it){
+  const levels = it.levels || {};
+  const levRows = ['Level 1','Level 2','Level 3','Level 4','Level 5','Level 6'].map(lv => `
+    <div class="level-box">
+      <label>${esc(lv)}</label>
+      <textarea class="cd-level" data-level="${esc(lv)}">${esc(levels[lv] || '')}</textarea>
+    </div>`).join('');
+
+  return `
+    <div class="compdef-card" id="cd-card-${esc(dept)}-${idx}">
+      <div class="compdef-card-header">
+        <input type="number" class="compdef-no" value="${it.no || idx + 1}" min="1" title="No." style="width:50px">
+        <input type="text" class="compdef-name" value="${esc(it.name)}" placeholder="Competency name">
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.compdef-card').remove()">✕ Remove</button>
+      </div>
+      <div class="def-row">
+        <label>Definition</label>
+        <textarea class="cd-def" rows="3">${esc(it.definition || '')}</textarea>
+      </div>
+      <div class="levels-grid">${levRows}</div>
+    </div>`;
+}
+
+function cdAddCard(dept){
+  const container = document.getElementById('cd-cards-' + dept);
+  if(!container) return;
+  const idx = container.querySelectorAll('.compdef-card').length;
+  const dummy = {
+    no: idx + 1, name: '', definition: '',
+    levels: { 'Level 1':'', 'Level 2':'', 'Level 3':'', 'Level 4':'', 'Level 5':'', 'Level 6':'' }
+  };
+  const div = document.createElement('div');
+  div.innerHTML = cdCardHtml(dept, idx, dummy);
+  container.appendChild(div.firstElementChild);
+  container.lastElementChild.querySelector('.compdef-name').focus();
+}
+
+function collectCdDept(dept){
+  const container = document.getElementById('cd-cards-' + dept);
+  if(!container) return;
+  DATA.competencyDefs[dept] = [];
+  container.querySelectorAll('.compdef-card').forEach(card => {
+    const levels = {};
+    card.querySelectorAll('.cd-level').forEach(ta => { levels[ta.dataset.level] = ta.value; });
+    DATA.competencyDefs[dept].push({
+      no:         parseInt(card.querySelector('.compdef-no').value) || 1,
+      name:       card.querySelector('.compdef-name').value,
+      definition: card.querySelector('.cd-def').value,
+      levels
+    });
+  });
+}
+
+function deleteCdDept(dept){
+  if(!confirm(`Delete department "${dept}" and all its competency definitions?`)) return;
+  delete DATA.competencyDefs[dept];
+  if(cdActiveDept === dept) cdActiveDept = null;
+  renderCompDefs();
+}
+
+function editCdDept(oldName){
+  const newName = prompt('Rename department:', oldName);
+  if(!newName || !newName.trim() || newName.trim() === oldName) return;
+  const n = newName.trim();
+  if(DATA.competencyDefs[n]){ alert(`A department named "${n}" already exists.`); return; }
+  if(cdActiveDept === oldName) collectCdDept(oldName);
+  DATA.competencyDefs[n] = DATA.competencyDefs[oldName];
+  delete DATA.competencyDefs[oldName];
+  if(cdActiveDept === oldName) cdActiveDept = n;
+  renderCompDefs();
+  selectCdDept(n);
+}
+
+function collectCompDefs(){
+  if(cdActiveDept) collectCdDept(cdActiveDept);
+}
+
+/* ═══════════════════════════════════════════
+   Add department (shared)
+═══════════════════════════════════════════ */
+function addDept(section){
+  const name = prompt('New department name:');
+  if(!name || !name.trim()) return;
+  const n = name.trim();
+
+  if(section === 'roles'){
+    if(DATA.rolesMatrix[n]){ alert('Already exists in Roles Matrix.'); return; }
+    DATA.rolesMatrix[n] = [];
+    document.getElementById('roles-dept-list').insertAdjacentHTML('beforeend', deptLiHtml(n, 'roles'));
+    selectRolesDept(n);
+  } else if(section === 'cbd'){
+    if(DATA.compByDept[n]){ alert('Already exists in Comp by Dept.'); return; }
+    DATA.compByDept[n] = [];
+    document.getElementById('cbd-dept-list').insertAdjacentHTML('beforeend', deptLiHtml(n, 'cbd'));
+    selectCbdDept(n);
+  } else if(section === 'cd'){
+    if(DATA.competencyDefs[n]){ alert('Already exists in Competency Defs.'); return; }
+    DATA.competencyDefs[n] = [];
+    document.getElementById('cd-dept-list').insertAdjacentHTML('beforeend', deptLiHtml(n, 'cd'));
+    selectCdDept(n);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Collect all before save
+═══════════════════════════════════════════ */
+function collectAll(){
+  collectTaskForce();
+  collectProgression();
+  collectRolesMatrix();
+  collectCompByDept();
+  collectCompDefs();
+}
+
+/* ═══════════════════════════════════════════
+   Rename department modal
+═══════════════════════════════════════════ */
+
+// All unique dept names across every section (for the main search datalist)
+function rnAllDepts(){
+  const s = new Set();
+  DATA.taskForce.forEach(r => s.add(r.department));
+  Object.keys(DATA.rolesMatrix).forEach(k => s.add(k));
+  Object.keys(DATA.compByDept).forEach(k => s.add(k));
+  Object.keys(DATA.competencyDefs).forEach(k => s.add(k));
+  return [...s].sort((a,b) => a.localeCompare(b));
+}
+
+function rnFillList(listId, items){
+  document.getElementById(listId).innerHTML =
+    [...new Set(items)].sort((a,b) => a.localeCompare(b))
+      .map(k => `<option value="${esc(k)}">`).join('');
+}
+
+function renameDeptEverywhere(){
+  // Populate the main search datalist with all dept names from all sections
+  rnFillList('rn-all-list', rnAllDepts());
+
+  // Populate per-section fallback datalists
+  rnFillList('rn-list-tf',  DATA.taskForce.map(r => r.department));
+  rnFillList('rn-list-rm',  Object.keys(DATA.rolesMatrix));
+  rnFillList('rn-list-cbd', Object.keys(DATA.compByDept));
+  rnFillList('rn-list-cd',  Object.keys(DATA.competencyDefs));
+
+  // Reset all fields and status cells
+  document.getElementById('rn-search').value = '';
+  document.getElementById('rn-new').value    = '';
+  ['tf','rm','cbd','cd'].forEach(k => {
+    document.getElementById('rn-alt-' + k).value = '';
+    document.getElementById('rn-st-'  + k).textContent  = '—';
+    document.getElementById('rn-st-'  + k).className    = 'rn-status-miss';
+    document.getElementById('rn-alt-' + k).readOnly     = false;
+    document.getElementById('rn-alt-' + k).style.background = '';
+  });
+
+  document.getElementById('rename-modal').classList.remove('hidden');
+  document.getElementById('rn-search').focus();
+}
+
+// Live lookup — runs every time the user types in the "Current name" field
+function rnLookup(){
+  const q = document.getElementById('rn-search').value.trim();
+
+  const checks = {
+    tf:  () => DATA.taskForce.some(r => r.department === q),
+    rm:  () => DATA.rolesMatrix[q]    !== undefined,
+    cbd: () => DATA.compByDept[q]     !== undefined,
+    cd:  () => DATA.competencyDefs[q] !== undefined,
+  };
+
+  ['tf','rm','cbd','cd'].forEach(k => {
+    const found  = q && checks[k]();
+    const stEl   = document.getElementById('rn-st-'  + k);
+    const altEl  = document.getElementById('rn-alt-' + k);
+
+    if(found){
+      stEl.textContent  = '✅ found';
+      stEl.className    = 'rn-status-found';
+      altEl.value       = q;        // auto-fill with the found name
+      altEl.readOnly    = true;     // lock — no need to override
+      altEl.style.background = '#f0fdf4';
+    } else {
+      stEl.textContent  = '⚠ not found';
+      stEl.className    = 'rn-status-miss';
+      if(altEl.readOnly){           // was previously locked — clear it
+        altEl.value     = '';
+        altEl.readOnly  = false;
+        altEl.style.background = '';
+      }
+    }
+  });
+}
+
+function closeRenameModal(){
+  document.getElementById('rename-modal').classList.add('hidden');
+}
+
+// Close on backdrop click
+document.getElementById('rename-modal').addEventListener('click', e => {
+  if(e.target === document.getElementById('rename-modal')) closeRenameModal();
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeRenameModal();
+});
+
+function doRename(){
+  const newName = document.getElementById('rn-new').value.trim();
+  if(!newName){ alert('Please enter the new department name.'); return; }
+
+  // Each section uses: the auto-filled value (if found) or the manual alternate input
+  const oldTF  = document.getElementById('rn-alt-tf').value.trim();
+  const oldRM  = document.getElementById('rn-alt-rm').value.trim();
+  const oldCBD = document.getElementById('rn-alt-cbd').value.trim();
+  const oldCD  = document.getElementById('rn-alt-cd').value.trim();
+
+  if(!oldTF && !oldRM && !oldCBD && !oldCD){
+    alert('No department found or entered for any section. Please type the current name above.');
+    return;
+  }
+
+  const changed = [];
+  const errors  = [];
+
+  // Collect active DOM state before touching DATA keys
+  collectAll();
+
+  // ── Task Force: rename matching department rows ──
+  if(oldTF){
+    let count = 0;
+    DATA.taskForce.forEach(r => {
+      if(r.department === oldTF){ r.department = newName; count++; }
+    });
+    if(count > 0) changed.push(`Task Force (${count} row${count > 1 ? 's' : ''})`);
+    else errors.push(`Task Force: "${oldTF}" not found`);
+  }
+
+  // ── Roles Matrix: rename key ──
+  if(oldRM){
+    if(DATA.rolesMatrix[oldRM] === undefined){
+      errors.push(`Roles Matrix: "${oldRM}" not found`);
+    } else if(oldRM !== newName && DATA.rolesMatrix[newName] !== undefined){
+      errors.push(`Roles Matrix: "${newName}" already exists — skipped`);
+    } else {
+      if(oldRM !== newName){
+        DATA.rolesMatrix[newName] = DATA.rolesMatrix[oldRM];
+        delete DATA.rolesMatrix[oldRM];
+        if(rolesActiveDept === oldRM) rolesActiveDept = newName;
+      }
+      changed.push('Roles Matrix');
+    }
+  }
+
+  // ── Comp by Dept: rename key ──
+  if(oldCBD){
+    if(DATA.compByDept[oldCBD] === undefined){
+      errors.push(`Comp by Dept: "${oldCBD}" not found`);
+    } else if(oldCBD !== newName && DATA.compByDept[newName] !== undefined){
+      errors.push(`Comp by Dept: "${newName}" already exists — skipped`);
+    } else {
+      if(oldCBD !== newName){
+        DATA.compByDept[newName] = DATA.compByDept[oldCBD];
+        delete DATA.compByDept[oldCBD];
+        if(cbdActiveDept === oldCBD) cbdActiveDept = newName;
+      }
+      changed.push('Comp by Dept');
+    }
+  }
+
+  // ── Competency Defs: rename key ──
+  if(oldCD){
+    if(DATA.competencyDefs[oldCD] === undefined){
+      errors.push(`Competency Defs: "${oldCD}" not found`);
+    } else if(oldCD !== newName && DATA.competencyDefs[newName] !== undefined){
+      errors.push(`Competency Defs: "${newName}" already exists — skipped`);
+    } else {
+      if(oldCD !== newName){
+        DATA.competencyDefs[newName] = DATA.competencyDefs[oldCD];
+        delete DATA.competencyDefs[oldCD];
+        if(cdActiveDept === oldCD) cdActiveDept = newName;
+      }
+      changed.push('Competency Defs');
+    }
+  }
+
+  // ── DICT_DATA: rename any matching department strings ──
+  let dictCount = 0;
+  if(DICT_DATA){
+    const oldNames = [oldTF, oldRM, oldCBD, oldCD].filter(Boolean);
+    DICT_DATA.forEach(e => {
+      if(!e.departments) return;
+      const depts = e.departments.split(',').map(d => d.trim());
+      let hit = false;
+      oldNames.forEach(old => {
+        const idx = depts.indexOf(old);
+        if(idx !== -1){ depts[idx] = newName; hit = true; }
+      });
+      if(hit){ e.departments = depts.join(', '); dictCount++; }
+    });
+    if(dictCount > 0) changed.push(`DICT_DATA (${dictCount} entries)`);
+  }
+
+  closeRenameModal();
+
+  if(changed.length === 0){
+    showStatus('Nothing renamed. ' + (errors.length ? 'Errors: ' + errors.join('; ') : ''), 'error');
+    return;
+  }
+
+  renderAll();
+
+  let msg = `Renamed → "${newName}" in: ${changed.join(', ')}.`;
+  if(errors.length) msg += '  Skipped: ' + errors.join('; ') + '.';
+  msg += '  Click Save to persist.';
+  showStatus(msg, 'info');
+}
+</script>
+</body>
+</html>

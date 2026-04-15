@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Descriptions — FCF 2026</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#2d3436;min-height:100vh}
+
+.app-header{background:linear-gradient(135deg,#1e3a5f 0%,#2d5986 100%);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.app-header .icon{font-size:1.6rem}
+.app-header h1{font-size:1.15rem;font-weight:700;letter-spacing:.2px}
+.app-header .sub{font-size:.78rem;opacity:.7;margin-top:2px}
+
+.controls{background:#fff;padding:20px 24px;border-bottom:1px solid #dfe6e9;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ctrl-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:200px}
+.ctrl-group label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#636e72}
+select{padding:9px 10px;border:1.5px solid #b2bec3;border-radius:6px;font-size:.875rem;background:#fff;color:#2d3436;cursor:pointer;width:100%;transition:border-color .15s}
+select:focus{outline:none;border-color:#1e3a5f;box-shadow:0 0 0 3px rgba(30,58,95,.1)}
+select:disabled{background:#f5f6fa;color:#aaa;cursor:not-allowed}
+
+.result-area{padding:32px 24px;display:flex;justify-content:center}
+.result-card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:36px 40px;width:100%;max-width:560px;text-align:center;display:none;flex-direction:column;align-items:center;gap:20px}
+.result-card.visible{display:flex}
+.file-icon{font-size:3rem;line-height:1}
+.file-name{font-size:.95rem;font-weight:600;color:#1e3a5f;word-break:break-word;line-height:1.5;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+.file-name:hover{color:#2d5986;}
+.file-dept{font-size:.8rem;color:#636e72}
+.btn-open{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s;margin-top:4px}
+.btn-open:hover{background:#2d5986}
+.btn-open svg{width:20px;height:20px;flex-shrink:0}
+.hint{font-size:.78rem;color:#b2bec3;line-height:1.6}
+
+.placeholder-card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:48px 40px;width:100%;max-width:560px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.placeholder-card svg{width:52px;height:52px;color:#d0d7de}
+.placeholder-card p{font-size:.9rem;color:#b2bec3;line-height:1.6;max-width:320px}
+
+/* ── COMPETENCY MODAL ── */
+.cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+.cm-overlay.open{display:flex;}
+.cm-box{background:#fff;border-radius:14px;width:100%;max-width:794px;box-shadow:0 8px 40px rgba(0,0,0,.25);display:flex;flex-direction:column;margin:auto;}
+.cm-hdr{background:linear-gradient(135deg,#1e3a5f,#2d5986);color:#fff;padding:20px 24px;border-radius:14px 14px 0 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.cm-hdr-info h2{font-size:1.22rem;font-weight:700;margin:0 0 4px;}
+.cm-hdr-info p{font-size:.95rem;opacity:.75;margin:0;}
+.cm-close{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.99rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.cm-close:hover{background:rgba(255,255,255,.28);}
+.cm-print{background:rgba(255,255,255,.9);border:none;color:#1e3a5f;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.99rem;font-weight:700;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;}
+.cm-print:hover{background:#fff;}
+.cm-body{padding:20px 24px;overflow-y:auto;max-height:72vh;}
+.cm-banner{border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:.97rem;display:flex;align-items:center;gap:8px;}
+.cm-banner.match{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;}
+.cm-banner.nomatch{background:#fef3c7;border:1px solid #fcd34d;color:#92400e;}
+.cm-badge{background:#3730a3;color:#fff;border-radius:6px;padding:2px 8px;font-size:.87rem;font-weight:700;}
+.cm-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.cm-card{border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden;}
+.cm-card-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;}
+.cm-comp-name{font-weight:700;font-size:1.05rem;color:#1e3a5f;flex:1;}
+.cm-lvl-badge{border-radius:20px;padding:3px 12px;font-size:.89rem;font-weight:800;border:2px solid;white-space:nowrap;}
+.cm-def{padding:6px 14px 8px;font-size:.96rem;color:#000;line-height:1.55;border-top:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;background:#fafafa;}
+.cm-lvl-text{padding:10px 14px;font-size:.96rem;line-height:1.6;color:#000;white-space:pre-line;}
+.cm-lvl-label{font-size:.84rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;color:#1e3a5f;}
+.cm-loading,.cm-error{text-align:center;padding:48px;font-size:1.07rem;}
+.cm-error{color:#c0392b;}
+.btn-comps{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:#6c5ce7;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .15s;font-family:inherit;}
+.btn-comps:hover{background:#5a4bd1;}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="icon">📄</div>
+  <div>
+    <h1>Job Descriptions</h1>
+    <div class="sub">FCF 2026 — VN-YNL</div>
+  </div>
+  <a href="index.html" style="margin-left:auto;padding:7px 16px;background:#e2e8f0;color:#1e3a5f;border-radius:7px;font-size:.82rem;font-weight:700;text-decoration:none;white-space:nowrap;">🏠 Home</a>
+</header>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <label for="sel-col">Collection</label>
+    <select id="sel-col">
+      <option value="">— Select collection —</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label for="sel-dept">Department</label>
+    <select id="sel-dept" disabled>
+      <option value="">— Select department —</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label for="sel-file">Position / File</label>
+    <select id="sel-file" disabled>
+      <option value="">— Select position —</option>
+    </select>
+  </div>
+</div>
+
+<div class="result-area">
+
+  <!-- Placeholder shown before any file is selected -->
+  <div class="placeholder-card" id="placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+    <p>Select a collection, department and position to open the Job Description</p>
+  </div>
+
+  <!-- Result card shown after a file is selected -->
+  <div class="result-card" id="result-card">
+    <div class="file-icon">📝</div>
+    <div>
+      <div class="file-name" id="file-name" onclick="openCompModal()" title="Click to view competencies"></div>
+      <div class="file-dept" id="file-dept"></div>
+    </div>
+    <a class="btn-open" id="btn-open" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      Open in Word
+    </a>
+    <button class="btn-comps" onclick="openCompModal()">📋 View Competencies</button>
+    <p class="hint">Opens in Microsoft Word (downloads on web, opens directly when local).<br>If Word shows "unreadable content", click <strong>Yes</strong> to recover — the file is safe.</p>
+  </div>
+
+</div>
+
+<!-- ── COMPETENCY MODAL ── -->
+<div class="cm-overlay" id="cm-overlay" onclick="if(event.target===this)closeCompModal()">
+  <div class="cm-box">
+    <div class="cm-hdr">
+      <div class="cm-hdr-info">
+        <h2 id="cm-title">Competency Profile</h2>
+        <p id="cm-subtitle"></p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <button class="cm-print" onclick="printCompModal()">🖨️ Print PDF</button>
+        <button class="cm-close" onclick="closeCompModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="cm-body" id="cm-body">
+      <div class="cm-loading">⏳ Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════════════════
+const COLLECTIONS = [
+{
+  label: "1. Job Description VN-YNL-040224",
+  base: "1. Job_Description_VN-YNL-040224",
+  depts: [
+    { label: "Accounting & Finance", path: "1. Accounting and Finance", files: [
+      "1. JD For Job Evaluation _ General Manager V.3.docm",
+      "2. JD For Job Evaluation _ Account Payable - Asst manager V.3.docm",
+      "3. JD For Job Evaluation _ Account Payable - Officer - Team Lead V.3.docm",
+      "4. JD For Job Evaluation _ Account Payable  - Asst. Officer  Officer (Staff) V.3.docm",
+      "5. JD For Job Evaluation _ Revenue  Account Receivable-Asst manager V.3.docm",
+      "6. JD For Job Evaluation _ Revenue  Account Receivable - Officer (Team Lead) V.3.docm",
+      "7. JD For Job Evaluation _ Revenue  Account Receivable - Asst. Officer - Officer (Staff) V.3.docm",
+      "8. JD For Job Evaluation _ Cost Controller_Asst. Manager V.3.docm",
+      "9. JD For Job Evaluation _ Cost Controller_Officer V.3.docm",
+      "10. JD For Job Evaluation _ Tax Team - Officer - Team Lead V.3.docm",
+      "11. JD For Job Evaluation _ Tax Team - Asst. Officer - Officer (Staff) V.3.docm",
+      "12. JD For Job Evaluation _ Tax Team_Asst. Manager V.3.docm",
+      "13. JD For Job Evaluation _ Tax Team - Asst. Officer - Officer (Staff 1) V.3.docm",
+      "14. JD For Job Evaluation _ Tax Team - Asst. Officer - Officer (Staff 2) - V.3.docm"
+    ]},
+    { label: "Admin", path: "2. Admin", files: [
+      "1. JD For Job Evaluation _ General Affairs Manager V.3.docm",
+      "2. JD For Job Evaluation _ Asst. Manager V.3.docm",
+      "3. JD For Job Evaluation _ Asst. Manager - Legal V.3.docm",
+      "4. JD For Job Evaluation _ Officer, Asst. Officer - Admin V.3.docm",
+      "5. JD For Job Evaluation _ Officer, Asst. Officer - Cateen, Visa, Work Permit.docm",
+      "6. JD For Job Evaluation _ Officer, Asst. Officer - Environment V3.docm",
+      "7. JD For Job Evaluation _ Officer, Asst. Officer - Purchasing Team V.3.docm",
+      "8. JD For Job Evaluation _ Officer, Asst. Officer - Vehicle Control V.3.docm",
+      "9. JD For Job Evaluation _ Officer, Asst. Officer Hygiene & Domitory V.3.docm",
+      "10. JD For Job Evaluation _ Officer, Asst. Officer - Package Receiving & Delivery V.3.docm",
+      "11. JD For Job Evaluation _ Officer - Secretary to General Director V.3.docm",
+      "12. JD for Evaluation_Admin_Cook V.3.docm",
+      "13. JD for Evaluation_Admin_Driver V.3.docm"
+    ]},
+    { label: "Construction", path: "3. Construction", files: [
+      "1. JD For Job Evaluation _ Construction Dept. Manager V.3.docm",
+      "2. JD For Job Evaluation _ Asst. Manager - Electric Substation Team V.3.docm",
+      "3. JD For Job Evaluation _ Officer - Construction Project and Maintenance Work V.3.docm",
+      "4. JD For Job Evaluation Asst. Officer - Civil & Mainteance Work V.3.docm",
+      "5. JD For Job Evaluation _ Assistant Manager - Construction Project V.3.docm",
+      "6. JD For Job Evaluation _ Asst. Officer - Electric & Electric maintenance Team V.3.docm",
+      "7. JD For Job Evaluation Officer - Civil & Maintenance Work V.3.docm",
+      "8. JD For Job Evaluation_Supervisor - Civil Construction Team V.3.docm",
+      "9. JD For Job Evaluation_Worker - Civil Construction Team V.3.docm",
+      "10. JD For Job Evaluation_Supervisor - Substation Team (electrics).docm",
+      "11. JD For Job Evaluation_Worker - Substation Team (electrics).docm"
+    ]},
+    { label: "HR / C&B", path: "4. HR/C&B", files: [
+      "1. JD For Job Evaluation _ C&B Asst. Manager - V.3.docm",
+      "2. JD For Job Evaluation _ C&B Officer - V.3.docm"
+    ]},
+    { label: "HR / CSR", path: "4. HR/CSR", files: [
+      "1. JD For Job Evaluation _ Asst. Manager CSR - V.3.docm",
+      "2. JD For Job Evaluation _ Asst. Manager - Chemical Team - V.3.docm",
+      "3. JD For Job Evaluation _ Asst. Officer - Chemical - V.3.docm",
+      "4. JD For Job Evaluation _ Team Lead OHS - V.3.docm",
+      "5. JD For Job Evaluation _ EC - V.3.docm",
+      "6. JD For Job Evaluation _ Officer OHS V.3.docm"
+    ]},
+    { label: "HR / ER", path: "4. HR/ER", files: [
+      "1. JD For Job Evaluation _ Asst. Manager - ER - V.3.docm",
+      "2. JD For Job Evaluation _ Officer - ER - V.3.docm"
+    ]},
+    { label: "HR / Recruitment", path: "4. HR/Recruitment", files: [
+      "1. JD For Job Evaluation Asst. Manager, Leader of Recruitment - V.3.docm",
+      "2. JD For Job Evaluation Specialist, Asst. Officer, Officer of Recruitment - V.3.docm"
+    ]},
+    { label: "HR / T&D", path: "4. HR/T&D", files: [
+      "1. JD For Job Evaluation _ Internal Training Officer - V.3.docm",
+      "2. JD For Job Evaluation _ Internal Communication Officer -V.3.docm"
+    ]},
+    { label: "Import-Export", path: "5. Import-Export", files: [
+      "1. JD For Job Evaluation _IM-EX Manager V.3.docm",
+      "2. JD For Job Evaluation _ Import Team V.3.docm",
+      "3. JD For Job Evaluation _ Export Team V.3.docm",
+      "4. JD For Job Evaluation _ Logs Team V.3.docm",
+      "5. JD For Job Evaluation _ CO Team V.3.docm"
+    ]},
+    { label: "IT", path: "6. IT", files: [
+      "1. JD For Job Evaluation _ IT Manager V.3.docm",
+      "2. JD For Job Evaluation _ IT Asst. Manager V.3.docm",
+      "3. JD For Job Evaluation _ IT Engineer V.3.docm"
+    ]},
+    { label: "KPO", path: "7. KPO", files: [
+      "3.1 JD For Job Evaluation_ KPO Deputy Factory Manger (KPO Leader__200324_9.00AM _Thanh.docx",
+      "3.1 JD For Job Evaluation_ KPO Leader (Asst. Manager)_05112021200324_9.00AM _Thanh.docx",
+      "3.1 JD For Job Evaluation_ KPO Officer (ISO Team Leader)__200324_9.00AM _Thanh.docx",
+      "3.1 JD For Job Evaluation_ KPO Officer (Kaizen Team Leader)__200324_9.00AM _Thanh.docx",
+      "3.1 JD For Job Evaluation_ KPO Asst. Officer -Officer (Staff)_ 05112021_200324_9.00AM _Thanh.docx"
+    ]},
+    { label: "Lab", path: "8. Lab", files: [
+      "3 1 JD For Job Evaluation_Lab Asst  Manager_08102021_1.00PM_Quynh - 140324_11.00AM_Yen.docx",
+      "3.1 JD For Job Evaluation_Lab Asst. Officer - Officer_08102021_1.00PM_Quynh - 140324_11.00AM_Yen.docx"
+    ]},
+    { label: "CMCD", path: "9. CMCD", files: [
+      "3 1 JD For Job Evaluation_CMCD Asst  Officer - Officer  _ 15032024_9.00AM _Hai Nam.docx",
+      "3 1 JD For Job Evaluation_CMCD Helpers, Issueworkers  _ 15032024_9.00AM_Hai Nam.docx",
+      "3 1 JD For Job Evaluation_CMCD Inspectors _ 15032024_9.00AM_Hai Nam.docx",
+      "3 1 JD For Job Evaluation_CMCD Officer (Leader)  _ 15032024_9 03AM_Hai Nam.docx"
+    ]},
+    { label: "Medical Clinic", path: "10. Medical Clinic", files: [
+      "1. JD For Job Evaluation _ Chief Clinic - V.3.docm",
+      "2. JD For Job Evaluation _ Asst. Doctor - V.3.docm",
+      "3. JD For Job Evaluation _ Nurse - V.3.docm",
+      "4. JD For Job Evaluation _ Pharmacist - V.3.docm"
+    ]},
+    { label: "M&ED", path: "11. M&ED", files: [
+      "3.1 JD For Job Evaluation_ M_ED Senior Manager_ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Asst.  Manager_ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Asst. Officer  (Reporter) _ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Asst. Officer (Purchaser)_ 220224_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED  Issue Worker (Storekeeper)_220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Maintenance worker _ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Junior Supervisor (Air conditioner team)_ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Junior Supervisor (Turner team)_ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Supervisor  (Cam machine team)_220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Supervisor (Electric team)_ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Supervisor (Embroidery _ Spreader machine team)_ 220324_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Supervisor (Water Station team)_ 220304_Nam.docx",
+      "3.1 JD For Job Evaluation_ M_ED Supervisor (Welding team)_ 220324_Nam.docx"
+    ]},
+    { label: "Pattern", path: "12. Pattern", files: [
+      "3.1 JD For Job Evaluation_ Pattern Senior Manager 16032024_Dat.docx",
+      "3.1 JD For Job Evaluation_ Pattern Asst.  Manager  16032024-Dat.docx",
+      "3.1 JD For Job Evaluation_Asst. Officer  (Consumption) 16032024_Dat.docx",
+      "3.1 JD For Job Evaluation_Pattern Maker 16032024-Dat.docx",
+      "3.1 JD For Job Evaluation_Marker  Maker 16032024_Dat.docx"
+    ]},
+    { label: "Planning", path: "13. Planning", files: [
+      "3.1 JD For Job Evaluation_Planning Senior Manager _140324_Thuy.docx",
+      "3.1 JD For Job Evaluation_Planning   Asst. Manager_140324_Thuy.docx",
+      "3.1 JD For Job Evaluation_Planning Asst. Officer - Officer_140324_Thuy.docx"
+    ]},
+    { label: "QA Garment / JD QA-A", path: "14. QA Garment/JD QA -A", files: [
+      "1.JD For Job Evaluation QA A Manager_270324_Lan.docx",
+      "2.JD For Job Evaluation QA A Asst Manager_270224_Lan.docx",
+      "3.JD For Job Evaluation QA A QC_270324_lan.docx",
+      "4.JD For Job Evaluation_QA-A Junior QC_270324_Lan.docx",
+      "5. JD For Job Evaluation_QA-A Junior Supervisor_270324_Lan.docx",
+      "6. JD For Job Evaluation_QA-A inspector_270324_Lan.docx",
+      "7. JD For Job Evaluation_QA-A Reporter _ Quynh_161021_2..PM_270324_Lan.docx"
+    ]},
+    { label: "QA Garment / Buyer QA", path: "14. QA Garment/QA-A_ Buyer QA", files: [
+      "3.1 JD For Job Evaluation_QA-A Junior Supervisor - Supervisor _ QA buyer_131021_4.06PM_ Quynh.docx",
+      "3.1 JD For Job Evaluation_QA-A Junior.QC. QC  _ QA buyer_131021_4.06PM_ Quynh.docx"
+    ]},
+    { label: "QC Indirect (QA-B)", path: "15. QC- indirect", files: [
+      "3.1 JD For Job Evaluation_QA-B Asst. Manager_ 140324_11hAM_ Truong.docx",
+      "3.1 JD For Job Evaluation_QA-B Junior QC-QC_131021_4.06PM_ Quynh.docx",
+      "3.1 JD For Job Evaluation_QA-B Junior Supervior. Supervisor_131021_4.06P....docx",
+      "3.1 JD For Job Evaluation_QA-B Inspector_131021_4.06PM_ Quynh.docx",
+      "3.1 JD For Job Evaluation_QA-B Repoter_131021_4.06PM_ Quynh.docx"
+    ]},
+    { label: "Sales Garment / F1 Team A", path: "15. Sales Garment/F1 Team A_Thuấn", files: [
+      "1. JD For Job Evaluation _ Leader-Order - V.3.docm",
+      "2. JD For Job Evaluation _ 2. Shipping (main) & SAP (AMC file) - V.3.docm",
+      "3. JD For Job Evaluation_Material purchasing - Fabric (main)  & production follow up - V.3.docm",
+      "4. JD For Job Evaluation_Material purchasing - Trims (main)  & production follow up - V.3.docm",
+      "5. JD For Job Evaluation_Material purchasing-Label & packing (main)& production follow up - V.3.docm",
+      "6. JD For Job Evaluation _  Developer & production follow up ( Construction issue ) - V.3.docm"
+    ]},
+    { label: "Sales Garment / F1 Team C", path: "15. Sales Garment/F1 Team C_Thuấn", files: [
+      "1. JD For Job Evaluation _ 2. Shipping (main) & SAP (AMC file), Payment  Handler (Additional) - Thêu.docm",
+      "3. JD For Job Evaluation _ 3. Material purchasing - Fabric (main) & production follow up - Fabric issue , Sap - Mat PO & payment - Thanh.docm",
+      "3. JD For Job Evaluation _ 4. Material purchasing - Trims (main)  & production follow up - Trims issue , Sap - Mat PO & payment - Thúy.docm",
+      "3. JD For Job Evaluation _ 6. Developer  production follow up ( Construction issue ) - Hoài - Hanh - Dung.docm"
+    ]},
+    { label: "Sales Garment / F3 Team B", path: "15. Sales Garment/F3 Team B_Thuấn", files: [
+      "1. JD For Job Evaluation _Sales - Manager, Asst. Manager, Team Leader.docm",
+      "2. JD For Job Evaluation _ Purchasing Handler.docm",
+      "3. JD For Job Evaluation _Shipment Handler.docm",
+      "4. JD For Job Evaluation _Developer.docm"
+    ]},
+    { label: "Sales Garment / Lu Lu (Ms. Bùi Tươi)", path: "15. Sales Garment/Lu lu_Ms. Bùi Tươi", files: [
+      "1. JD For Job Evaluation _ Sales - Manager, Asst. Manager, Team Leader - V.3.docm",
+      "2. JD For Job Evaluation _ Shipment Handler (Tuoi) - V.3.docm",
+      "3. JD For Job Evaluation _Payment Handler (Tuoi) -V3.docm",
+      "4. JD For Job Evaluation _ Purchasing Handler (Tuoi) - V.3.docm",
+      "5. JD For Job Evaluation _ SAP in charge (Tuoi) -V.3.docm",
+      "6. JD For Job Evaluation _ Developer (Tuoi) - V.3.docm"
+    ]},
+    { label: "Sales Garment / Mr. Khảm", path: "15. Sales Garment/Mr. Khảm", files: [
+      "1. JD For Job Evaluation _Team Leader - V.3.docm",
+      "2. JD For Job Evaluation _  Local Purchasing Handler - V.3.docm",
+      "3. JD For Job Evaluation _  Oversea Purchasing Handler - V.3.docm",
+      "4. .JD For Job Evaluation _ Shipment Handler - V.3.docm"
+    ]},
+    { label: "Sales Garment / Pata (Ms. Chinh)", path: "15. Sales Garment/Pata_Ms. Chinh/PTG JD For Job Evaluation/PTG JD For Job Evaluation", files: [
+      "1. JD For Job Evaluation _ Sales - Manager V.3.docm",
+      "2. JD For Job Evaluation _ Shipment Handler V.3.docm",
+      "3. JD For Job Evaluation _Payment Handler V.3.docm",
+      "4. JD For Job Evaluation _ Production Handler V.3.docm",
+      "5. JD For Job Evaluation _ Local Purchasing Handler V.3.docm",
+      "6. JD For Job Evaluation _ Purchasing Handler V.3.docm",
+      "7. JD For Job Evaluation _ Developer V.3.docm"
+    ]},
+    { label: "Sales Garment / REI (Dung)", path: "15. Sales Garment/REI_Dung", files: [
+      "1. JD For Job Evaluation _  Sales - Manager, Asst. Manager, Team Leader_Dung's Team - V.3.docm",
+      "2. JD For Job Evaluation _ Shipment Handler__Dung's Team - V.3.docm",
+      "3. JD For Job Evaluation _  Purchasing-SAP-Payment Handler_Dung's Team - V.3.docm",
+      "4. JD For Job Evaluation _ Production Handler_Dung's Team - V3.docm",
+      "5. JD For Job Evaluation _ Developer_Dung's Team V.3.docm"
+    ]},
+    { label: "SAP", path: "17. SAP", files: [
+      "1. JD For Job Evaluation_Financial Accounting (FI Module) - V.3.docm",
+      "2. JD For Job Evaluation _ Controlling (CO Module) V.3.docm",
+      "3. JD For Job Evaluation _ SD Module SAP -V.3.docm",
+      "4. JD For Job Evaluation _ SAP Production Planning Officer - V.3.docm",
+      "5. JD For Job Evaluation _ SAP MM Officer- V.3.docm"
+    ]},
+    { label: "Trade Union", path: "18. Trade Union", files: [
+      "3 1 JD For Job Evaluation_Trade Union Asst  Officer - Officer _030424_1.00PM_Ngoc Anh.docx"
+    ]},
+    { label: "Work Study", path: "19. Work Study", files: [
+      "3 1 JD For Job Evaluation_WS  Manager_220324.docx",
+      "3.1 JD For Job Evaluation_WS Asst.  Manager_220324.docx",
+      "3.1 JD For Job Evaluation_WS Asst. Office - Officer (Cycle Check)_220324.docx",
+      "3.1 JD For Job Evaluation_WS  Asst offier  Oficer (Caculating thread)_.docx",
+      "3.1 JD For Job Evaluation_WS Asst. Office - Officer - Technician (Genera...)_.docx"
+    ]},
+    { label: "Checking Team", path: "20. Checking Team", files: [
+      "1. JD For Job Evaluation _ Checking Chief - V.3.docm",
+      "2. JD For Job Evaluation _SC Staff - V.3.docm",
+      "3.  JD For Job Evaluation _Materials Staff - V.3.docm",
+      "4. JD For Job Evaluation _ M&ED Staff - V.3.docm"
+    ]},
+    { label: "CWS", path: "21. CWS", files: [
+      "3.1 JD For Job Evaluation_CWS Manager  _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Chief of Technician  _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Asst. Officer- Officer  (Sales, Development, Purchasing ) _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Officer  (Production) _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Reporter _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Junior  Supervisor - Supervisor  (Line) _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Development Supervisor  _ 121021_8.21AM_Quynh_180324_AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Supervisor  Development  _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Supervisor (Maintenance) _ 121021_8.21AM_Quynh_180324_AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS  Supervisor (MCD- Laser Cut)  _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Maintenance Team Leader _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Technician  _121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_ CWS Issue worker (CWS center)_061021_12.00PM_ Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_ CWS Issue worker (Sewing)_ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_ CWS Maintenance worker _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Samper Maker _ 121021_8.21AM_Quynh_190324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation_CWS Supervior (PP) _ 121021_8.21AM_Quynh_180324_9AM_Huong.docx",
+      "3.1 JD For Job Evaluation _ CWS Line Operator_121021_8.27AM_Quynh_180324_9AM_Huong.docx"
+    ]}
+  ]
+},
+{
+  label: "2. Job Description VN-YNL-040424",
+  base: "2. Job_Description_VN-YNL-040424",
+  depts: [
+    { label: "Garment Production / Sewing", path: "22-30_Garment Production/1. JD - Sewing (Garment Production)", files: [
+      "3.1 JD For Job Evaluation _ Sewing JPM-PM-DFM_ FM _020424_10.00AM _Tinh.docx",
+      "3.1 JD For Job Evaluation _ Sewing PM-PM-DFM_ 300324_Trang.docx",
+      "3.1 JD For Job Evaluation _Sewing J.APM-APM_300324_Trang.docx",
+      "3.1 JD For Job Evaluation _Sewing Chief of Technician_ 300324_Trang.docx",
+      "3.1 JD For Job Evaluation _Sewing J Technician-Technician_300324_Trang.docx",
+      "3.1 JD For Job Evaluation _Sewing Supervior_300324_Trang.docx",
+      "3.1 JD For Job Evaluation _ Sewing Sample Maker_300324_Trang.docx",
+      "3.1 JD For Job Evaluation _Sewing Line Operator_ 300324_Trang.docx",
+      "3 1 JD For Job Evaluation_ Sewing Issue worker_ 300324_Trang.docx",
+      "3 1 JD For Job Evaluation_Sewing Middle Issue worker_ 300324_Trang.docx",
+      "3 1 JD For Job Evaluation_Sewing Reporter_ 300324_Trang.docx"
+    ]},
+    { label: "Garment Production / Cleaning", path: "22-30_Garment Production/2. JD - Cleaning", files: [
+      "3 1 JD For Job Evaluation_ Cleaner (Supervisor)_020424_Phong.docx",
+      "3 1 JD For Job Evaluation_Cleaner__ 020424_Phong.docx"
+    ]},
+    { label: "Garment Production / Embroidery", path: "22-30_Garment Production/3. JD - Embroidery", files: [
+      "3.1 JD For Job Evaluation_Embroidery Supervior _ 020424.docx",
+      "3.1 JD For Job Evaluation_Embroidery Operator_ 020424.docx",
+      "3.1 JD For Job Evaluation_Embroidery Operator ( Issue worker) _ 020424.docx"
+    ]},
+    { label: "Garment Production / Embroidery / Logo Emb", path: "22-30_Garment Production/3. JD - Embroidery/JD - Logo Emb (Emb Centre)", files: [
+      "3 1 JD For Job Evaluation_Embroidery Chief Technician (Team Leader) - Logo Embroidery Garment Supporting_ 020424_Khoi.docx",
+      "3 1 JD For Job Evaluation_Embroidery Junior Supervisor _ Junior Technician  - Logo Embroidery Garment Supporting_020424_Khoi.docx"
+    ]},
+    { label: "Garment Production / Maintenance", path: "22-30_Garment Production/4. JD-Maintenance", files: [
+      "3.1 JD For Job Evaluation_ Maintenance Chief_020424_Vu.docx",
+      "3.1 JD For Job Evaluation_ Maintenance Supervisor_020424_Vu.docx",
+      "3.1 JD For Job Evaluation_ Maintenance Reporter _020424_Vu.docx",
+      "3.1 JD For Job Evaluation_Maintenance Worker (Electrician)_ 020424_Vu.docx",
+      "3.1 JD For Job Evaluation_Maintenance Worker (Mechanic)_020424_Vu.docx"
+    ]},
+    { label: "Garment Production / MCD", path: "22-30_Garment Production/5. JD - MCD", files: [
+      "3.1 JD For Job Evaluation_MCD Chief_ 020424_Phong.docx",
+      "3.1 JD For Job Evaluation_MCD Asst. Officer Officer _020424_Phong.docx",
+      "3.1 JD For Job Evaluation_MCD isue worker _ 020424_Phong.docx"
+    ]},
+    { label: "Garment Production / Packing", path: "22-30_Garment Production/6. JD - Packing", files: [
+      "1.3 1 JD For Job Evaluation_Packing Chief_020424_Duong.docx",
+      "2.3 1 JD For Job Evaluation_Packing Supervisor_020424_Duong.docx",
+      "3.3 1 JD For Job Evaluation_Packing Reporter_020424_Duong.docx",
+      "4.3 1 JD For Job Evaluation_Packing Issue worker_ 020424_Duong.docx",
+      "5.3 1 JD For Job Evaluation_Packer_020424_Duong.docx"
+    ]},
+    { label: "Garment Production / Down Filling", path: "22-30_Garment Production/7. JD - Down Filling", files: [
+      "3.1 JD For Job Evaluation_Down Supervior _020424_Phong.docx",
+      "3.1 JD For Job Evaluation_Down Operator  _020424_Phong.docx",
+      "3.1 JD For Job Evaluation_Down filling Reporter _020424_Phong.docx"
+    ]},
+    { label: "Garment Production / Cutting", path: "22-30_Garment Production/8. JD - Cutting", files: [
+      "3.1 JD For Job Evaluation_Cutting  Chief_02042024_6PM_Ha.docx",
+      "3.1 JD For Job Evaluation_Cutting Supervisor _02042024_6PM_Ha.docx",
+      "3.1 JD For Job Evaluation_Cutting Operator _02042024_6PM_Ha.docx",
+      "3.1 JD For Job Evaluation_Cutting Reporter_02042024_6PM_Ha.docx",
+      "3.1 JD For Job Evaluation_Cutting Issue worker_h_02042024_6PM_Ha.docx"
+    ]},
+    { label: "F7 / Dyeing", path: "31-46_F7/F7/1. Dyeing", files: [
+      "1. JD For Job Evaluation _ APM - V.3.docm",
+      "2. JD For Job Evaluation _ Junior APM - V.3.docm",
+      "3. JD For Job Evaluation _ Asst. Officer 1  - V.3.docm",
+      "4. JD For Job Evaluation _ Asst. Officer 2  - Ngọc.docm",
+      "5. JD For Job Evaluation _ Asst. Officer 3 - Hoa - V.3.docm",
+      "6. JD For Job Evaluation _ Asst. Officer 4 - Phuong - V.3.docm",
+      "7. JD For Job Evaluation _ Supervisor - V.3.docm",
+      "8. JD For Job Evaluation _ Junior Supervisor -  V.3.docm",
+      "9. JD For Job Evaluation _ Technician - V.3.docm"
+    ]},
+    { label: "F7 / Knitting", path: "31-46_F7/F7/2. Knitting", files: [
+      "1. JD For Job Evaluation_Supervisor - V.3.docm",
+      "2. JD For Job Evaluation_Technician - V.3.docm",
+      "3. JD For Job Evaluation_Junior Technician - V.3.docm",
+      "4.. JD For Job Evaluation _ Junior Supervisor - V.3.docm",
+      "5. JD For Job Evaluation_Officer - V.3.docm",
+      "6. JD For Job Evaluation_Officer Knitting - V.3.docm"
+    ]},
+    { label: "F7 / Lab", path: "31-46_F7/F7/3. Lab", files: [
+      "1. JD For Job Evaluation _ APM Phy - Lab - V.3.docm",
+      "2. JD For Job Evaluation _ JPM Lab - Dip - V.3.docm",
+      "3. JD For Job Evaluation _ Staff Phy - Lab - V.3.docm",
+      "4. JD For Job Evaluation _ Staff Lab - Dip - V.3.docm"
+    ]},
+    { label: "F7 / Maintenance", path: "31-46_F7/F7/4. Maintenance", files: [
+      "1. JD For Job Evaluation _ F7_Deputy Chief Maintenance - V.3.docm",
+      "2. JD For Job Evaluation_ F7_ Electrician - V.3.docx",
+      "3. JD For Job Evaluation _ F7_J.Supervisor_Maintenance - V.3.docm"
+    ]},
+    { label: "F7 / MCD", path: "31-46_F7/F7/5. MCD", files: [
+      "1. JD For Job Evaluation _ APM - V.3.docm",
+      "2. JD For Job Evaluation _ Asst. Officer - V.3.docm",
+      "3. JD For Job Evaluation _ Asst. Officer - Chemical Store - V.3.docm",
+      "4. JD For Job Evaluation _ Asst. Office - Materials Store - V.3.docm",
+      "5. JD For Job Evaluation _ Officer - V.3.docm"
+    ]},
+    { label: "F7 / Planning", path: "31-46_F7/F7/6. Planning", files: [
+      "3. JD For Job Evaluation _ F7_Planning Officer.docm"
+    ]},
+    { label: "F7 / Poly Bag", path: "31-46_F7/F7/7. Poly Bag", files: [
+      "1. JD For Job Evaluation _ APM - V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - V.3.docm"
+    ]},
+    { label: "F7 / Production", path: "31-46_F7/F7/8. Production", files: [
+      "1. JD For Job Evaluation _ Production Office - V.3.docm"
+    ]},
+    { label: "F7 / QA-A", path: "31-46_F7/F7/9. QA_A", files: [
+      "1. JD For Job Evaluation _ QA - A Manager - V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - V.3.docm",
+      "3. JD For Job Evaluation _ Reporter - V.3.docm"
+    ]},
+    { label: "F7 / Raising & Shearing", path: "31-46_F7/F7/10. Raising - Shearing", files: [
+      "1. JD For Job Evaluation _ Junior Technician - V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - V.3.docm",
+      "3. JD For Job Evaluation _ Junior Supervisor - V.3.docm"
+    ]},
+    { label: "F7 / Sales", path: "31-46_F7/F7/11. Sales", files: [
+      "1. JD For Job Evaluation _ Sales Asst. Manager - V.3.docm",
+      "2. JD For Job Evaluation _ Sales Officer V.3.docm",
+      "3. JD For Job Evaluation _ Sales Asst. Officer V.3.docm"
+    ]},
+    { label: "F7 / WTP", path: "31-46_F7/F7/12. WTP", files: [
+      "1. JD For Evaluation - Shift Leader WTP.docx",
+      "2. JD For Job Evaluation - WTP Engineer.docx",
+      "2. JD For Job Evaluation - WTP Managaer.docx"
+    ]},
+    { label: "F7 / Woven", path: "31-46_F7/F7/13. Woven", files: [
+      "1. JD For Job Evaluation _ Junior PM V.3.docm",
+      "2. JD For Job Evaluation _ Junior Technician V.3.docm",
+      "3. JD For Job Evaluation _ Junior Supervisor V.3.docm"
+    ]},
+    { label: "F7 / Tenter", path: "31-46_F7/F7/14. Tenter", files: [
+      "1. JD For Job Evaluation _ Tenter - APM V.3.docm",
+      "2. JD For Job Evaluation _ Tenter - Junior Supervisor V.3.docm",
+      "3. JD For Job Evaluation _ Tenter - Supervisor V.3.docm"
+    ]},
+    { label: "F8 / Factory Manager", path: "47-58_F8/1. Factory Manager", files: [
+      "1. JD For Job Evaluation _ Factory Manager - V.3.docm"
+    ]},
+    { label: "F8 / Office", path: "47-58_F8/2. Office", files: [
+      "1. JD For Job Evaluation _ Office Manager - V.3.docm",
+      "2. JD For Job Evaluation _ Production Manager - V.3.docm",
+      "3. JD For Job Evaluation _ Maintenance Manager - V.3.docm",
+      "4. JD For Job Evaluation _ Officer - SAP Team - V.3.docm",
+      "5. JD For Job Evaluation _ Officer - Purchasing -V.3.docm"
+    ]},
+    { label: "F8 / Dyeing", path: "47-58_F8/3. Dyeing", files: [
+      "1. JD For Job Evaluation _ Dyeing Technician - V.3.docm",
+      "2. JD For Job Evaluation _ Finishing Technician - V.3.docm",
+      "3. JD For Job Evaluation _ Dyeing Supervisor - V.3.docm",
+      "4. JD For Job Evaluation _ Finishing Supervisor - V.3.docm"
+    ]},
+    { label: "F8 / Knitting", path: "47-58_F8/4. Knitting", files: [
+      "1. JD For Job Evaluation _ Knitting Technician - V.3.docm",
+      "2. JD For Job Evaluation_ Knitting Supervisor - V.3.docm",
+      "3. JD For Job Evaluation _ Officer + Asst. Officer - V.3.docm"
+    ]},
+    { label: "F8 / Planning", path: "47-58_F8/7. Planning", files: [
+      "1. JD For Job Evaluation _ Officer _ Asst. Officer - Planner for Dye House - V.3.docm"
+    ]},
+    { label: "F8 / Printing", path: "47-58_F8/8. Printing", files: [
+      "1. JD For Job Evaluation _ Assistant Manager - Printing - V.3.docm"
+    ]},
+    { label: "F8 / Printing / Digital & Sublimation", path: "47-58_F8/8. Printing/Digital & Sublimation Printing", files: [
+      "2. JD For Job Evaluation _ Sub. Print Supervisor - V.3.docm",
+      "3. JD For Job Evaluation _ Digital Printing Supervisor - V.3.docm",
+      "4. JD For Job Evaluation _ Sub. Print Technician - V.3.docm"
+    ]},
+    { label: "F8 / QA-QC", path: "47-58_F8/9. QA-QC", files: [
+      "1. JD For Job Evaluation _ QA Junior Officer - V.3.docm",
+      "2. JD For Job Evaluation _ QC Officer 1 - V.3.docm",
+      "3. JD For Job Evaluation _ QC Officer 2 - V.3.docm"
+    ]},
+    { label: "F8 / Sales", path: "47-58_F8/10. Sales", files: [
+      "1. JD For Job Evaluation _ Sales Asst. Manager - V.3.docm",
+      "2. JD For Job Evaluation _ Sales Back Office - Sales Coordinator - Sales Officer - V.3.docm"
+    ]},
+    { label: "F8 / Supporting", path: "47-58_F8/11. Supporting", files: [
+      "1. JD For Job Evaluation _ Washing Technician & Supervisor - V.3.docm",
+      "2. JD For Job Evaluation _ Boiler Supervisor - V.3.docm",
+      "3. JD For Job Evaluation _ Dyelab Officer - V.3.docm",
+      "4. JD For Job Evaluation _ QC Lab Officer - V.3.docm"
+    ]},
+    { label: "Printing F11", path: "59. Printing_F11", files: [
+      "3.1 JD For Job Evaluation_Printing Chief_ 020424_2.00PM_ Duong.docx",
+      "3.1 JD For Job Evaluation_Printing Chief Tech- Tech_ 020421_2.00PM_.docx",
+      "3.1 JD For Job Evaluation_Printing Asst. Officer_ 020424_2.00PM_ Duong.docx",
+      "3.1 JD For Job Evaluation_Printing Junior Supervisor - Supervisor_ 020424_2.00PM_.docx",
+      "3.1 JD For Job Evaluation_Printing  Supervisor (Ink)_ 020424_2.00PM_.docx",
+      "3.1 JD For Job Evaluation_Printing Supervisor (Sample)_020424_2.00PM_ Duong.docx",
+      "3.1 JD For Job Evaluation_Printing  Operator (Printer)_020424_2.00PM_ Duong.docx",
+      "3.1 JD For Job Evaluation_Printing  Operator (Helper)_ 020424_2.00PM_.docx",
+      "3.1 JD For Job Evaluation_Printing  Cleaner_020424_2.00PM_.docx"
+    ]},
+    { label: "F12 / Padding", path: "60-68_F12/F12/1. Padding", files: [
+      "1. JD For Job Evaluation _ Junior Supervisor - Padding - V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - Padding - V.3.docm"
+    ]},
+    { label: "F12 / Sales", path: "60-68_F12/F12/2. Sales", files: [
+      "1. JD For Job Evaluation _ Sales Staff - V.3.docm"
+    ]},
+    { label: "F12 / Maintenance", path: "60-68_F12/F12/3. Maintenance", files: [
+      "1. JD For Job Evaluation _ Chief Maintenance - V.3.docm",
+      "2. JD For Job Evaluation _ Junior Supervisor, Supervisor of Maintenance - V.3.docm"
+    ]},
+    { label: "F12 / MCD", path: "60-68_F12/F12/4. MCD", files: [
+      "1. JD For Job Evaluation _ MCD Staff - V.3.docm"
+    ]},
+    { label: "F12 / Quilting", path: "60-68_F12/F12/5. Quilting", files: [
+      "1. JD For Job Evaluation _ Quilting in Charge - V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - Quilting - V.3.docm",
+      "3. JD For Job Evaluation _ Technician - Quilting - V.3.docm"
+    ]},
+    { label: "F12 / QA", path: "60-68_F12/F12/6. QA", files: [
+      "1. JD For Job Evaluation Supervisor Junior Supervisor QA-A - V.3.docm"
+    ]},
+    { label: "F12 / Production Office", path: "60-68_F12/F12/7. Production Office", files: [
+      "1. JD For Job Evaluation _ Production Office Staff - V.3.docm",
+      "2. JD For Job Evaluation _ JPM - V.3.docm"
+    ]},
+    { label: "F12 / Yarn Spinning", path: "60-68_F12/F12/8. Yarn Spinning", files: [
+      "1. JD For Job Evaluation _ Yarn Spinning in Charge - V.3.docm"
+    ]},
+    { label: "F13 / Drawing", path: "69-78_F13/JD/1. Drawing", files: [
+      "1. JD For Job Evaluation _ Junior Technician - Drawing V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - Drawing V.3.docm",
+      "3. JD For Job Evaluation _ J. Supervisor - Drawing V.3.docm"
+    ]},
+    { label: "F13 / Dryer", path: "69-78_F13/JD/2. Dryer", files: [
+      "1. JD For Job Evaluation_Supervisor - Dryer_ V.3.docm"
+    ]},
+    { label: "F13 / Maintenance", path: "69-78_F13/JD/3. Maintenance", files: [
+      "1. JD For Job Evaluation _ Deputy Chief - Maintenance_ V.3.docm",
+      "2. JD For Job Evaluation _ Asst. Manager - Maintenance_V.3.docm"
+    ]},
+    { label: "F13 / MCD", path: "69-78_F13/JD/4. MCD", files: [
+      "1. JD For Job Evaluation _ MCD Officer - Spare Part_ V.3.docm",
+      "2. JD For Job Evaluation _MCD Asst. Officer - Materials Warehouse_V.3.docm",
+      "3. JD For Job Evaluation _MCD Officer - Finished Good_V.3.docm"
+    ]},
+    { label: "F13 / QC", path: "69-78_F13/JD/5. QC", files: [
+      "1. JD For Job Evaluation _ Supervisor - QC_ V.3.docm",
+      "2. JD For Job Evaluation _ J.Supervisor - QC_V.3.docm"
+    ]},
+    { label: "F13 / Production Office", path: "69-78_F13/JD/6. Production Office", files: [
+      "1. JD For Job Evaluation _Translator_ V.3.docm"
+    ]},
+    { label: "F13 / Sales", path: "69-78_F13/JD/7. Sales", files: [
+      "1. JD For Job Evaluation _ Asst. Manager_ V.3.docm",
+      "2. JD For Job Evaluation _  Officer - Sales(Import)_V.3.docm",
+      "3. JD For Job Evaluation _  Officer - Sales(export)_V.3.docm"
+    ]},
+    { label: "F13 / Sizing", path: "69-78_F13/JD/8. Sizing", files: [
+      "1. JD For Job Evaluation Junior Supervisor - Sizing_V.3.docm",
+      "2. JD For Job Evaluation_ Junior Technician - Sizing_V.3.docm"
+    ]},
+    { label: "F13 / Boiler", path: "69-78_F13/JD/9.Boiler", files: [
+      "1. JD For Job Evaluation _ Junior Supervisor - Boiler_V.3.docm"
+    ]},
+    { label: "F13 / Weaving", path: "69-78_F13/JD/10. Weaving", files: [
+      "1. JD For Job Evaluation _ Supervisor - Weaving Setting Beam V.3.docm",
+      "2. JD For Job Evaluation _ Supervisor - Weaving V.3.docm",
+      "3. JD For Job Evaluation _ Junior APM- Weaving V.3.docm",
+      "4. JD For Job Evaluation _ Junior Supervisor - Weaving V.3.docm",
+      "5. JD For Job Evaluation _ Junior Technician - Weaving V.3.docm"
+    ]},
+    { label: "F13 / Beaming", path: "69-78_F13/JD/11. Beaming", files: [
+      "3. JD For Job Evaluation _ Beaming Supervisor V1.docm"
+    ]},
+    { label: "Seamless A", path: "79.Seamless_A", files: [
+      "3.1 JD For Job Evaluation_Seamless A    Head of programming and Technici..._220324.docx",
+      "3.1 JD For Job Evaluation_Seamless A Asst. Officer (Programmer)_220324.docx",
+      "3.1 JD For Job Evaluation_Seamless A    Junior Pattern Maker _220324.docx",
+      "3.1 JD For Job Evaluation_Seamless A   Operator _.docx",
+      "3.1 JD For Job Evaluation_Seamless A   Junior Supervisor (Maintenance)_.docx",
+      "3.1 JD For Job Evaluation_Seamless A   Mechanican _.docx",
+      "3.1 JD For Job Evaluation_ Seamless A  Reporter _220324.docx"
+    ]},
+    { label: "Seamless B", path: "80.Seamless_B", files: [
+      "3.1 JD For Job Evaluation_ Seamless B  Asst. Manager__020424.docx",
+      "3.1 JD For Job Evaluation_ Seamless B   Asst. Officer-Officer (Programmer)_020424.docx",
+      "3.1 JD For Job Evaluation_ Seamless B  Asst. Officer-Officer (Chart Maker)_020424.docx",
+      "3.1 JD For Job Evaluation_Seamless B   Asst. Officer-Officer (Yarn Controller)_020424.docx",
+      "3.1 JD For Job Evaluation_Seamless B   Team Leader_020424.docx",
+      "3.1 JD For Job Evaluation_Seamless B  Teachnician_020424.docx",
+      "3.1 JD For Job Evaluation_ Seamless B   Junior Supervior (Mainternance)_020424.docx",
+      "3.1 JD For Job Evaluation_Seamless B   Maintenance Worker_020424.docx",
+      "3.1 JD For Job Evaluation_Seamless B  Operator _.docx",
+      "3.1 JD For Job Evaluation_ Seamless B  Reporter _020424.docx"
+    ]}
+  ]
+}];
+
+// ══════════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════════
+function cleanName(raw) {
+  let n = raw
+    .replace(/\.(docm|docx)$/i, '')
+    .replace(/^[\d\s.]+/, '')
+    .replace(/JD\s+For\s+Job\s+Evaluation\s*/gi, '')
+    .replace(/JD\s+For\s+Evaluation\s*/gi, '')
+    .replace(/^[\s_\-]+/, '')
+    .replace(/[_\s]+\d{6,}[\s\S]*$/, '')
+    .replace(/[\s_\-]+V\.?\s*\d+\.?\s*$/gi, '')
+    .replace(/_+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return n || raw.replace(/\.(docm|docx)$/i, '');
+}
+
+function buildUrl(base, deptPath, file) {
+  return [base, deptPath, file]
+    .join('/')
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  UI
+// ══════════════════════════════════════════════════════════════════
+const selCol      = document.getElementById('sel-col');
+const selDept     = document.getElementById('sel-dept');
+const selFile     = document.getElementById('sel-file');
+const placeholder = document.getElementById('placeholder');
+const resultCard  = document.getElementById('result-card');
+const fileName    = document.getElementById('file-name');
+const fileDept    = document.getElementById('file-dept');
+const btnOpen     = document.getElementById('btn-open');
+
+COLLECTIONS.forEach((col, i) => selCol.add(new Option(col.label, i)));
+
+selCol.addEventListener('change', () => {
+  selDept.innerHTML = '<option value="">— Select department —</option>';
+  selFile.innerHTML = '<option value="">— Select position —</option>';
+  selDept.disabled = true;
+  selFile.disabled = true;
+  reset();
+  if (selCol.value === '') return;
+  COLLECTIONS[selCol.value].depts.forEach((d, i) => selDept.add(new Option(d.label, i)));
+  selDept.disabled = false;
+});
+
+selDept.addEventListener('change', () => {
+  selFile.innerHTML = '<option value="">— Select position —</option>';
+  selFile.disabled = true;
+  reset();
+  if (selCol.value === '' || selDept.value === '') return;
+  const dept = COLLECTIONS[selCol.value].depts[selDept.value];
+  dept.files.forEach((f, i) => selFile.add(new Option(cleanName(f), i)));
+  selFile.disabled = false;
+});
+
+selFile.addEventListener('change', () => {
+  if (selFile.value === '') { reset(); return; }
+  const col  = COLLECTIONS[selCol.value];
+  const dept = col.depts[selDept.value];
+  const file = dept.files[selFile.value];
+  const url  = buildUrl(col.base, dept.path, file);
+
+  _curPos  = cleanName(file);
+  _curDept = dept.label;
+
+  fileName.textContent = _curPos;
+  fileDept.textContent = col.label + ' › ' + dept.label;
+
+  // Build absolute URL so the link resolves correctly regardless of page location.
+  // On file:// (local testing) omit the download attribute so the OS file-association
+  // opens Word directly; the download attribute is blocked on file:// in Chrome/Edge.
+  // On https:// (Firebase) set download so the browser saves the file with a clean name.
+  const isFile = window.location.protocol === 'file:';
+  const absUrl = isFile
+    ? (window.location.href.replace(/\/[^/]*$/, '/') + url)
+    : url;
+  btnOpen.href   = absUrl;
+  btnOpen.target = '_blank';
+  btnOpen.rel    = 'noopener';
+  if (isFile) {
+    btnOpen.removeAttribute('download');
+  } else {
+    btnOpen.download = file;
+  }
+
+  placeholder.style.display = 'none';
+  resultCard.classList.add('visible');
+});
+
+function reset() {
+  resultCard.classList.remove('visible');
+  placeholder.style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  COMPETENCY MODAL
+// ══════════════════════════════════════════════════════════════════
+let _curPos = '', _curDept = '', _dbCache = null;
+
+// Map JD dept label → rolesMatrix department key
+const DEPT_MATRIX = {
+  // Collection 1 — office / support departments
+  'Accounting & Finance':'Accounting & Finance',
+  'Admin':'Admin',
+  'Construction':'Construction',
+  'HR / C&B':'HR','HR / CSR':'CSR','HR / ER':'HR',
+  'HR / Recruitment':'HR','HR / T&D':'HR',
+  'Import-Export':'Im-Export','IT':'IT','KPO':'KPO','Lab':'Lab',
+  'CMCD':'CMCD','Medical Clinic':'Admin','M&ED':'M.ED',
+  'Pattern':'Pattern','Planning':'Planning',
+  'QA Garment / JD QA-A':'QA_A','QA Garment / Buyer QA':'QA_A',
+  'QC Indirect (QA-B)':'QA_B',
+  'Sales Garment / F1 Team A':'Sales','Sales Garment / F1 Team C':'Sales',
+  'Sales Garment / F3 Team B':'Sales',
+  'Sales Garment / Lu Lu (Ms. Bùi Tươi)':'Sales',
+  'Sales Garment / Mr. Khảm':'Sales',
+  'Sales Garment / Pata (Ms. Chinh)':'Sales',
+  'Sales Garment / REI (Dung)':'Sales',
+  'SAP':'SAP','Trade Union':'Trade Union','Work Study':'WS',
+  'Checking Team':'Checking','CWS':'CWS',
+  // Garment Production
+  'Garment Production / Sewing':'Sewing',
+  'Garment Production / Cleaning':'Cleaning',
+  'Garment Production / Embroidery':'Embroidery',
+  'Garment Production / Embroidery / Logo Emb':'Logo Embroidery',
+  'Garment Production / Maintenance':'Maintenance',
+  'Garment Production / MCD':'MCD','Garment Production / Packing':'Packing',
+  'Garment Production / Down Filling':'Down Filling',
+  'Garment Production / Cutting':'Cutting',
+  // F7
+  'F7 / Dyeing':'F7-Dyeing','F7 / Knitting':'F7-Knitting',
+  'F7 / Lab':'F7-Lab','F7 / Maintenance':'F7-Maintenance','F7 / MCD':'F7-MCD',
+  'F7 / Planning':'F7-Planning','F7 / Poly Bag':'F7-PolyBag',
+  'F7 / Production':'F7-Utility',
+  'F7 / QA-A':'F7-QA','F7 / Raising & Shearing':'F7-Raising&Shearing',
+  'F7 / Sales':'F7-Sales','F7 / WTP':'F7-Water Treatment',
+  'F7 / Woven':'F7-Woven','F7 / Tenter':'F7-Tenter Dryer',
+  // F8
+  'F8 / Factory Manager':'F8-Office','F8 / Office':'F8-Office',
+  'F8 / Dyeing':'F8-Dyeing and Finishing','F8 / Knitting':'F8-Knitting',
+  'F8 / Planning':'F8-Planning',
+  'F8 / Printing':'F8-Digital Printing',
+  'F8 / Printing / Digital & Sublimation':'F8-Digital Printing',
+  'F8 / QA-QC':'F8-QA','F8 / Sales':'F8-Sales',
+  'F8 / Supporting':'F8-Maintenance',
+  // Printing F11
+  'Printing F11':'Printing',
+  // F12
+  'F12 / Padding':'F12-Padding','F12 / Sales':'F12-Sales',
+  'F12 / Maintenance':'F12-Maintenance','F12 / MCD':'F12-MCD',
+  'F12 / Quilting':'F12-Quilting','F12 / QA':'F12-QA',
+  'F12 / Production Office':'F12-Office','F12 / Yarn Spinning':'F12-Spinning',
+  // F13
+  'F13 / Drawing':'F13-Drawing','F13 / Dryer':'F13-Dryer',
+  'F13 / Maintenance':'F13-Maintenance','F13 / MCD':'F13-MCD',
+  'F13 / QC':'F13-QA','F13 / Sales':'F13-Sales',
+  'F13 / Sizing':'F13-Sizing','F13 / Weaving':'F13-Weaving',
+  'F13 / Boiler':'Production General',
+  'F13 / Beaming':'Production General',
+  'F13 / Production Office':'Production General',
+  // Seamless
+  'Seamless A':'Sewing','Seamless B':'Sewing',
+};
+
+// Map JD dept label → DICT_DATA department token (fallback)
+const DEPT_DICT = {
+  'Accounting & Finance':'Accounting & Finance','Admin':'Admin',
+  'Construction':'Construction','HR / C&B':'HR','HR / CSR':'CSR',
+  'HR / ER':'HR','HR / Recruitment':'HR','HR / T&D':'HR',
+  'Import-Export':'Im-Export','IT':'IT','KPO':'KPO','Lab':'Lab',
+  'CMCD':'CMCD','Medical Clinic':'Admin','M&ED':'M.ED',
+  'Pattern':'Pattern','Planning':'Planning',
+  'QA Garment / JD QA-A':'QA_A','QA Garment / Buyer QA':'QA_A',
+  'QC Indirect (QA-B)':'QA_B',
+  'Sales Garment / F1 Team A':'Sales','Sales Garment / F1 Team C':'Sales',
+  'Sales Garment / F3 Team B':'Sales','Sales Garment / Lu Lu (Ms. Bùi Tươi)':'Sales',
+  'Sales Garment / Mr. Khảm':'Sales','Sales Garment / Pata (Ms. Chinh)':'Sales',
+  'Sales Garment / REI (Dung)':'Sales',
+  'SAP':'SAP','Trade Union':'Trade Union','Work Study':'WS',
+  'Checking Team':'Checking','CWS':'CWS',
+  'Garment Production / Sewing':'Sewing','Garment Production / Cleaning':'Cleaning',
+  'Garment Production / Embroidery':'Embroidery',
+  'Garment Production / Embroidery / Logo Emb':'Logo Embroidery',
+  'Garment Production / Maintenance':'Maintenance','Garment Production / MCD':'MCD',
+  'Garment Production / Packing':'Packing','Garment Production / Down Filling':'Down Filling',
+  'Garment Production / Cutting':'Cutting',
+  'F7 / Dyeing':'Production Genral','F7 / Knitting':'Production Genral',
+  'F7 / Lab':'Lab','F7 / Maintenance':'Maintenance','F7 / MCD':'MCD',
+  'F7 / Planning':'Planning','F7 / Poly Bag':'Production Genral',
+  'F7 / Production':'Production Genral','F7 / QA-A':'QA_A',
+  'F7 / Raising & Shearing':'Production Genral','F7 / Sales':'Sales',
+  'F7 / WTP':'Production Genral','F7 / Woven':'Production Genral',
+  'F7 / Tenter':'Production Genral',
+  'F8 / Factory Manager':'Production Genral','F8 / Office':'Admin',
+  'F8 / Dyeing':'Production Genral','F8 / Knitting':'Production Genral',
+  'F8 / Planning':'Planning','F8 / Printing':'Printing',
+  'F8 / Printing / Digital & Sublimation':'Printing',
+  'F8 / QA-QC':'QA_A','F8 / Sales':'Sales','F8 / Supporting':'Production Genral',
+  'Printing F11':'Printing',
+  'F12 / Padding':'Production Genral','F12 / Sales':'Sales',
+  'F12 / Maintenance':'Maintenance','F12 / MCD':'MCD',
+  'F12 / Quilting':'Production Genral','F12 / QA':'QA_A',
+  'F12 / Production Office':'Production Genral','F12 / Yarn Spinning':'Production Genral',
+  'F13 / Drawing':'Production Genral','F13 / Dryer':'Production Genral',
+  'F13 / Maintenance':'Maintenance','F13 / MCD':'MCD',
+  'F13 / QC':'QA_A','F13 / Production Office':'Production Genral',
+  'F13 / Sales':'Sales','F13 / Sizing':'Production Genral',
+  'F13 / Boiler':'Production Genral','F13 / Weaving':'Production Genral',
+  'F13 / Beaming':'Production Genral',
+  'Seamless A':'Sewing','Seamless B':'Sewing',
+};
+
+const LVL_BG  = ['#f0fff4','#fffee8','#f0fffe','#fff8ee','#f5eeff','#fdf0ff'];
+const LVL_CLR = ['#1a7040','#a07000','#006b55','#b06000','#7c3aed','#a020a0'];
+
+// Extract a JSON array or object from raw text using bracket-balanced parsing
+function extractJSON(text, marker, open, close) {
+  const idx = text.indexOf(marker);
+  if (idx < 0) return null;
+  const start = text.indexOf(open, idx);
+  let depth = 0, i = start, inStr = false;
+  while (i < text.length) {
+    const ch = text[i];
+    if (inStr) {
+      if (ch === '\\') { i += 2; continue; }
+      if (ch === '"') inStr = false;
+    } else {
+      if (ch === '"') inStr = true;
+      else if (ch === '[' || ch === '{') depth++;
+      else if (ch === ']' || ch === '}') { if (!--depth) return text.slice(start, i + 1); }
+    }
+    i++;
+  }
+  return null;
+}
+
+async function loadDB() {
+  if (_dbCache) return _dbCache;
+  try {
+    const text = await fetch('database/database.html').then(r => r.text());
+    const dictStr = extractJSON(text, 'const DICT_DATA = [', '[', ']');
+    const dataStr = extractJSON(text, 'const DATA = {', '{', '}');
+    if (!dictStr || !dataStr) throw new Error('parse failed');
+    const matrix = JSON.parse(dataStr).rolesMatrix;
+    // Pre-normalise competency keys in every role (collapses double-spaces, trims)
+    // so lookups against DICT_DATA names always succeed on whitespace-only differences.
+    for (const roles of Object.values(matrix)) {
+      for (const role of roles) {
+        const fixed = {};
+        for (const [k, v] of Object.entries(role.competencies))
+          fixed[k.replace(/\s+/g, ' ').trim()] = v;
+        role.competencies = fixed;
+      }
+    }
+    _dbCache = { dict: JSON.parse(dictStr), matrix };
+    return _dbCache;
+  } catch(e) {
+    console.error('loadDB:', e);
+    return null;
+  }
+}
+
+function normStr(s) {
+  return s.toLowerCase()
+    .replace(/c\/o/gi, 'co')          // normalise C/O → co
+    .replace(/\blogs\b/gi, 'logistic') // normalise "logs" → "logistic" (shorthand team name)
+    .replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g,' ').trim();
+}
+
+function matchRole(posName, roles) {
+  const pn = normStr(posName);
+  const pWords = pn.split(' ').filter(w => w.length >= 2);  // allow 2-char words (e.g. "co")
+  let best = null, bestScore = -1;
+  for (const r of roles) {
+    const rn = normStr(r.role);
+    if (pn.includes(rn) || rn.includes(pn)) {
+      const sc = rn.length + 200;
+      if (sc > bestScore) { bestScore = sc; best = r; }
+      continue;
+    }
+    const rWords = rn.split(' ').filter(w => w.length >= 2);  // allow 2-char words
+    // Count words that match exactly OR by prefix (e.g. "logs" matches "logistic")
+    const overlap = rWords.filter(rw =>
+      pWords.some(pw => pw === rw || rw.startsWith(pw) || pw.startsWith(rw))
+    ).length;
+    if (overlap >= 2) {
+      const sc = overlap / Math.max(rWords.length, 1);
+      if (sc > bestScore) { bestScore = sc; best = r; }
+    }
+  }
+  return best;
+}
+
+function openCompModal() {
+  const overlay = document.getElementById('cm-overlay');
+  const body    = document.getElementById('cm-body');
+  document.getElementById('cm-title').textContent    = _curPos || 'Competency Profile';
+  document.getElementById('cm-subtitle').textContent = _curDept;
+  body.innerHTML = '<div class="cm-loading">⏳ Loading competency data…</div>';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadDB().then(db => {
+    if (!db) { body.innerHTML = '<div class="cm-error">⚠️ Could not load competency database.</div>'; return; }
+    renderModal(db, body);
+  });
+}
+
+function closeCompModal() {
+  document.getElementById('cm-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function printCompModal() {
+  const title    = document.getElementById('cm-title').textContent;
+  const subtitle = document.getElementById('cm-subtitle').textContent;
+  const bodyHTML = document.getElementById('cm-body').innerHTML;
+  const win = window.open('', '_blank', 'width=850,height=1150');
+  win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+@page{size:A4 portrait;margin:15mm 15mm 15mm 15mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:11pt;color:#000}
+.ph{background:linear-gradient(135deg,#1e3a5f,#2d5986);color:#fff;padding:14px 18px;border-radius:8px 8px 0 0;margin-bottom:14px}
+.ph h2{font-size:14pt;font-weight:700;margin:0 0 4px;color:#fff}
+.ph p{font-size:10pt;opacity:.8;margin:0}
+.cm-banner{border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:10pt;display:flex;align-items:center;gap:8px}
+.cm-banner.match{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3}
+.cm-banner.nomatch{background:#fef3c7;border:1px solid #fcd34d;color:#92400e}
+.cm-badge{background:#3730a3;color:#fff;border-radius:5px;padding:2px 7px;font-size:8.5pt;font-weight:700}
+.cm-grid{display:grid;gap:9px}
+.cm-card{border:1.5px solid #e5e7eb;border-radius:8px;overflow:hidden;break-inside:avoid}
+.cm-card-hdr{display:flex;align-items:center;gap:10px;padding:9px 13px}
+.cm-comp-name{font-weight:700;font-size:12pt;color:#1e3a5f;flex:1}
+.cm-lvl-badge{border-radius:20px;padding:2px 10px;font-size:9pt;font-weight:800;border:2px solid;white-space:nowrap}
+.cm-def{padding:6px 13px 8px;font-size:11pt;color:#000;line-height:1.55;border-top:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;background:#fafafa}
+.cm-lvl-text{padding:9px 13px;font-size:11pt;line-height:1.6;color:#000;white-space:pre-line}
+.cm-lvl-label{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;color:#1e3a5f}
+.cm-loading,.cm-error{text-align:center;padding:40px;font-size:11pt}
+</style>
+</head>
+<body>
+<div class="ph"><h2>${title}</h2><p>${subtitle}</p></div>
+${bodyHTML}
+<script>window.onload=function(){window.print();window.close();}<\/script>
+</body>
+</html>`);
+  win.document.close();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCompModal(); });
+
+function renderModal(db, body) {
+  const matKey  = DEPT_MATRIX[_curDept];
+  const dictKey = DEPT_DICT[_curDept];
+
+  // Resilient rolesMatrix lookup: try hardcoded map first, then direct dept label,
+  // then case-insensitive scan — so renames don't break the match.
+  let matched = null;
+  const matKeysToTry = [matKey, _curDept].filter(Boolean);
+  for (const k of matKeysToTry) {
+    if (db.matrix[k]) { matched = matchRole(_curPos, db.matrix[k]); break; }
+  }
+  if (!matched) {
+    // Last resort: case-insensitive scan of all rolesMatrix keys
+    const lower = (_curDept || '').toLowerCase();
+    const foundKey = Object.keys(db.matrix).find(k => k.toLowerCase() === lower);
+    if (foundKey) matched = matchRole(_curPos, db.matrix[foundKey]);
+  }
+
+  // Build dict lookup by competency name — exact key AND normalised key (collapses
+  // whitespace, lowercases) so double-spaces and capitalisation mismatches still resolve.
+  const dictLookup = {};
+  const dictNorm   = {};                          // normalised-name → entry
+  function normComp(s) { return s.replace(/\s+/g, ' ').trim().toLowerCase(); }
+  db.dict.forEach(e => {
+    dictLookup[e.competency]       = e;
+    dictNorm[normComp(e.competency)] = e;
+  });
+  function findEntry(name) { return dictLookup[name] || dictNorm[normComp(name)] || null; }
+
+  // Resilient DICT_DATA filter: try hardcoded map token first, then direct dept label,
+  // then case-insensitive — so renames don't wipe out the competency list.
+  function deptMatches(e, token) {
+    return e.departments.split(',').map(s => s.trim()).includes(token);
+  }
+  let comps = [];
+  if (matched) {
+    comps = Object.entries(matched.competencies).map(([name, lvl]) => ({ name, lvl }));
+  } else {
+    const filterCandidates = [dictKey, _curDept].filter(Boolean);
+    let filtered = [];
+    for (const token of filterCandidates) {
+      filtered = db.dict.filter(e => deptMatches(e, token));
+      if (filtered.length) break;
+    }
+    if (!filtered.length && _curDept) {
+      // Case-insensitive fallback across all departments CSV values
+      const lower = _curDept.toLowerCase();
+      filtered = db.dict.filter(e =>
+        e.departments.split(',').some(s => s.trim().toLowerCase() === lower)
+      );
+    }
+    comps = filtered.map(e => ({ name: e.competency, lvl: null }));
+  }
+
+  let html = matched
+    ? `<div class="cm-banner match"><span class="cm-badge">✓ Role matched</span> Showing competency profile for <strong>${matched.role}</strong></div>`
+    : `<div class="cm-banner nomatch">⚠️ No exact role match found in the matrix — showing all competencies for this department.</div>`;
+
+  html += '<div class="cm-grid">';
+  let cardCount = 0;
+  for (const { name, lvl } of comps) {
+    const entry = findEntry(name);
+    if (!entry) continue;
+    cardCount++;
+    const li  = lvl ? lvl - 1 : null;
+    const bg  = li !== null ? LVL_BG[li]  : '#f8fafc';
+    const clr = li !== null ? LVL_CLR[li] : '#2d3436';
+    const lvlText = (li !== null && entry.levels && entry.levels[li]) ? entry.levels[li] : '';
+    html += `<div class="cm-card">
+      <div class="cm-card-hdr" style="background:${bg};">
+        <span class="cm-comp-name">${name}</span>
+        ${lvl ? `<span class="cm-lvl-badge" style="background:#fff;color:${clr};border-color:${clr};">Level ${lvl}</span>` : ''}
+      </div>
+      <div class="cm-def">${entry.definition || ''}</div>
+      ${lvlText ? `<div class="cm-lvl-text"><div class="cm-lvl-label">Level ${lvl} — Expected behaviours:</div>${lvlText}</div>` : ''}
+    </div>`;
+  }
+  html += '</div>';
+  if (!cardCount) html += '<p style="color:#aaa;text-align:center;padding:32px;">No competencies found for this department.</p>';
+  body.innerHTML = html;
+}
+</script>
+</body>
+</html>

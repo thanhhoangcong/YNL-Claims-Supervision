@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FC Role Matrix Aggregator 10 — YNL Garments</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --b:#1a3a6b;--b2:#2d5aa0;--ink:#111827;--muted:#6b7280;
+  --line:#e5e7eb;--bg:#f3f4f6;--green:#1a7040;--red:#c0392b;
+  --sidebar:230px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HEADER ─────────────────────────────────────── */
+header{background:var(--b);color:#fff;padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;flex-shrink:0;flex-wrap:wrap;}
+.hdr-logo{height:46px;width:auto;flex-shrink:0;}
+.hdr-info{flex-shrink:0;}
+.hdr-brand{font-size:.92rem;font-weight:700;}
+.hdr-sub{font-size:.62rem;opacity:.65;margin-top:1px;}
+.hdr-divider{width:1px;height:32px;background:rgba(255,255,255,.25);flex-shrink:0;}
+.hdr-actions{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;}
+.hdr-right{display:flex;gap:.35rem;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.hbtn{border:none;border-radius:7px;padding:.3rem .7rem;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:filter .15s;}
+.hbtn:hover{filter:brightness(.88);}
+.hbtn-label{display:inline-flex;align-items:center;gap:.3rem;border:none;border-radius:7px;padding:.3rem .7rem;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:filter .15s;}
+.hbtn-label:hover{filter:brightness(.88);}
+.hsearch{background:rgba(255,255,255,.93);border:1.5px solid rgba(255,255,255,.5);color:#111;border-radius:7px;padding:.28rem .65rem;font-size:.74rem;font-family:inherit;outline:none;width:145px;}
+.hsearch::placeholder{color:#1a3a6b;opacity:.7;font-weight:600;}
+#clkw{background:#111;color:#00e5ff;font-family:'Courier New',monospace;border-radius:6px;padding:3px 8px;text-align:center;min-width:100px;box-shadow:0 0 7px rgba(0,229,255,.35);border:1px solid #005f6b;line-height:1.3;}
+#clkt{font-size:13pt;font-weight:bold;letter-spacing:2px;}
+#clkd{font-size:6pt;color:#7fffd4;letter-spacing:.8px;}
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.layout{display:flex;flex:1;overflow:hidden;}
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── NAV BAR ────────────────────────────────────── */
+#nav-bar{display:flex;align-items:center;gap:.3rem;padding:.45rem 1rem;flex-shrink:0;border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap;}
+.nbtn{border:none;border-radius:7px;padding:.27rem .62rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;background:var(--b);color:#fff;transition:filter .15s;white-space:nowrap;}
+.nbtn:hover{filter:brightness(1.2);}
+.nbtn.active{background:#4ade80;color:#000;}
+.nbtn.active:hover{background:#22c55e;}
+#nav-bar .sep{flex:1;}
+#stat-strip{display:flex;gap:.5rem;align-items:center;}
+.stat-pill{background:#eef2ff;border:1px solid var(--line);border-radius:12px;padding:.18rem .6rem;font-size:.68rem;font-weight:700;color:var(--b);}
+.nav-card{background:#eef2ff;border:1px solid var(--line);border-radius:8px;padding:.18rem .55rem;border-top:2px solid var(--b);display:inline-flex;flex-direction:column;align-items:center;min-width:76px;cursor:pointer;transition:filter .15s;}
+.nav-card:hover{filter:brightness(.93);}
+.nc-num{font-size:.92rem;font-weight:800;color:var(--b);line-height:1.25;}
+.nc-lbl{font-size:.57rem;color:var(--muted);white-space:nowrap;}
+
+/* ── MAIN CONTENT ───────────────────────────────── */
+#main-content{flex:1;overflow:auto;padding:.75rem 1.1rem 1.2rem;scrollbar-width:none;-ms-overflow-style:none;}
+#main-content::-webkit-scrollbar{display:none;}
+
+/* ── SIDEBAR ────────────────────────────────────── */
+.sidebar{width:var(--sidebar);background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-hdr{padding:.5rem .75rem;border-bottom:1px solid var(--line);font-weight:700;font-size:.78rem;color:var(--b);display:flex;align-items:center;justify-content:space-between;gap:.3rem;}
+.sb-cnt{background:#eef2ff;color:var(--b);border-radius:12px;padding:.05rem .38rem;font-size:.67rem;font-weight:700;}
+.sb-search{padding:.2rem .45rem;border:1px solid var(--line);border-radius:6px;font-size:.7rem;font-family:inherit;outline:none;width:100%;margin-top:.35rem;}
+.sb-list{flex:1;overflow-y:auto;padding:.35rem;scrollbar-width:none;-ms-overflow-style:none;}
+.sb-list::-webkit-scrollbar{display:none;}
+.sbi{border:1px solid var(--line);border-radius:8px;margin-bottom:.35rem;overflow:hidden;cursor:pointer;transition:border .12s;}
+.sbi:hover{border-color:var(--b);}
+.sbi.active{border-color:var(--b);border-width:2px;}
+.sbi-thumb{background:linear-gradient(135deg,var(--b),var(--b2));height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:700;padding:.3rem;text-align:center;}
+.sbi-lbl{padding:.3rem .45rem;}
+.sbi-name{font-weight:700;font-size:.71rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sbi-meta{font-size:.61rem;color:var(--muted);margin-top:1px;}
+.sbi-rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:.68rem;float:right;padding:0;opacity:.45;line-height:1;}
+.sbi-rm:hover{opacity:1;}
+.sb-empty{text-align:center;padding:1.2rem .6rem;color:var(--muted);font-size:.72rem;line-height:1.6;}
+
+/* ── EMPTY STATE ────────────────────────────────── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;color:var(--muted);text-align:center;gap:.6rem;}
+.empty-state .icon{font-size:2.5rem;}
+.empty-state h3{font-size:1rem;color:var(--b);margin:0;}
+.empty-state p{font-size:.8rem;line-height:1.6;}
+.drop-zone{border:2.5px dashed var(--line);border-radius:14px;padding:2rem 2.5rem;cursor:pointer;transition:all .2s;text-align:center;}
+.drop-zone:hover,.drop-zone.over{border-color:var(--b);background:#eef2ff;}
+.drop-zone .dz-icon{font-size:1.8rem;margin-bottom:.4rem;}
+.drop-zone .dz-title{font-weight:700;font-size:.88rem;color:var(--b);}
+.drop-zone .dz-sub{font-size:.73rem;color:var(--muted);margin-top:.2rem;}
+
+/* ── OVERVIEW TABLE ─────────────────────────────── */
+.sec-title{font-size:.95rem;font-weight:700;color:var(--b);margin-bottom:.15rem;}
+.sec-sub{font-size:.71rem;color:var(--muted);margin-bottom:.7rem;}
+.tbl-wrap{overflow:auto;border-radius:10px;border:1px solid var(--line);background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06);scrollbar-width:none;-ms-overflow-style:none;}
+.tbl-wrap::-webkit-scrollbar{display:none;}
+.tbl-wrap-sticky{border-radius:10px;border:1px solid var(--line);background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 185px);scrollbar-width:none;-ms-overflow-style:none;}
+.tbl-wrap-sticky::-webkit-scrollbar{display:none;}
+.data-tbl{border-collapse:collapse;width:100%;font-size:.79rem;}
+.data-tbl thead tr{background:var(--b);color:#fff;}
+.data-tbl thead th{padding:.42rem .65rem;text-align:left;font-size:.69rem;font-weight:700;white-space:nowrap;}
+.tbl-wrap-sticky .data-tbl thead th{position:sticky;top:0;z-index:2;background:var(--b);}
+.data-tbl tbody tr{border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s;}
+.data-tbl tbody tr:hover{background:#f0f4ff;}
+.data-tbl tbody td{padding:.38rem .65rem;vertical-align:middle;}
+.badge{display:inline-block;padding:.14rem .42rem;border-radius:12px;font-size:.68rem;font-weight:700;}
+.bk{background:#eef2ff;color:var(--b);}
+.bg{background:#d4f8e8;color:var(--green);}
+.br{background:#fff0ee;color:var(--red);}
+.by{background:#fef9c3;color:#854d0e;}
+.prog{height:7px;border-radius:4px;background:#e5e7eb;overflow:hidden;min-width:70px;}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#03ffb7,var(--green));}
+
+/* ── SUMMARY CARDS ──────────────────────────────── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.65rem;margin-bottom:1rem;}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.65rem .85rem;border-top:3px solid var(--b);}
+.card-num{font-size:1.55rem;font-weight:800;color:var(--b);line-height:1;}
+.card-lbl{font-size:.67rem;color:var(--muted);margin-top:.2rem;}
+
+/* ── ALL ROLES TABLE ────────────────────────────── */
+.filter-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;}
+.filt-sel{padding:.27rem .5rem;border-radius:7px;border:1px solid var(--line);font-size:.76rem;font-family:inherit;background:#fff;cursor:pointer;outline:none;}
+.filt-inp{padding:.27rem .55rem;border-radius:7px;border:1px solid var(--line);font-size:.76rem;font-family:inherit;outline:none;width:160px;}
+
+/* ── LEVEL PILLS ────────────────────────────────── */
+.lvl{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-weight:700;font-size:.72rem;}
+.l1{background:#edfad4;}.l2{background:#93fa2d;}.l3{background:#03ffb7;}
+.l4{background:#f7ef77;}.l5{background:#fa8c05;}.l6{background:#0099ff;}
+.ln{color:#aaa;}
+
+/* ── MODAL ──────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:300;padding:.8rem;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;width:95vw;max-width:98vw;max-height:95vh;display:flex;flex-direction:column;box-shadow:0 12px 50px rgba(0,0,0,.3);}
+.mhdr{padding:.7rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:.5rem;}
+.mtitle{font-weight:700;font-size:.92rem;color:var(--b);flex:1;}
+.mbody{flex:1;overflow:auto;padding:.85rem 1rem;scrollbar-width:none;-ms-overflow-style:none;}
+.mbody::-webkit-scrollbar{display:none;}
+.mclose{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);padding:.1rem .3rem;}
+.mclose:hover{color:var(--ink);}
+.mact-btns{display:flex;gap:.3rem;}
+
+/* ── MODAL TABLE ────────────────────────────────── */
+.mtbl-wrap{overflow:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:.75rem;max-height:calc(95vh - 140px);}
+.mtbl{border-collapse:collapse;width:100%;font-size:.77rem;}
+.mtbl thead tr:first-child{background:#fdffe0;color:#000;border-bottom:2px solid var(--b);}
+.mtbl thead tr:first-child th{padding:.42rem .32rem;text-align:left;white-space:nowrap;font-size:.64rem;position:sticky;top:0;z-index:2;background:#fdffe0;}
+.mtbl thead tr:nth-child(2) th{padding:.24rem .16rem;font-size:.58rem;font-weight:600;white-space:nowrap;position:sticky;top:28px;z-index:2;background:#fff;}
+.mtbl tbody tr{border-bottom:1px solid var(--line);}
+.mtbl tbody td{padding:.3rem .38rem;vertical-align:middle;}
+.chip{display:inline-block;background:#eef2ff;color:#000;padding:.13rem .36rem;border-radius:4px;font-size:.64rem;font-weight:600;font-family:monospace;white-space:nowrap;}
+.lk{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;font-size:.7rem;color:var(--muted);margin:.5rem 0;}
+
+/* ── CHARTS GRID ────────────────────────────────── */
+.charts-section{margin-top:.9rem;}
+.charts-title{font-size:.84rem;font-weight:700;color:var(--b);margin-bottom:.55rem;}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:.65rem;}
+.cc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.55rem;}
+.cn{font-weight:700;font-size:.72rem;color:var(--b);margin-bottom:.25rem;}
+
+/* ── FOOTER ─────────────────────────────────────── */
+footer{background:#fff;border-top:1px solid var(--line);padding:.42rem 1.1rem;display:flex;justify-content:space-between;align-items:center;font-size:.67rem;flex-shrink:0;}
+.fl{color:var(--b);font-weight:600;}
+.fr{color:var(--red);}
+
+/* ── TOAST ──────────────────────────────────────── */
+#toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:.45rem 1.1rem;border-radius:20px;font-size:.78rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:500;}
+#toast.show{opacity:1;}
+
+/* ── HELP MODAL ─────────────────────────────────── */
+.help-modal{background:#fff;border-radius:14px;width:92vw;max-width:860px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 12px 50px rgba(0,0,0,.3);}
+.help-body{flex:1;overflow-y:auto;padding:1rem 1.3rem 1.4rem;scrollbar-width:none;-ms-overflow-style:none;}
+.help-body::-webkit-scrollbar{display:none;}
+.help-toc{display:flex;flex-wrap:wrap;gap:.3rem;padding:.45rem .85rem;border-bottom:2px solid var(--line);flex-shrink:0;background:#fff;}
+.help-toc a{background:#eef2ff;color:var(--b);border-radius:6px;padding:.22rem .55rem;font-size:.7rem;font-weight:700;text-decoration:none;border:1px solid var(--line);transition:filter .15s;}
+.help-toc a:hover{filter:brightness(.9);}
+.hsec{margin-bottom:1.4rem;}
+.hsec-title{font-size:.88rem;font-weight:800;color:var(--b);border-left:4px solid var(--b);padding-left:.5rem;margin-bottom:.5rem;}
+.hsec p,.hsec li{font-size:.78rem;line-height:1.65;color:#333;}
+.hsec ul,.hsec ol{padding-left:1.2rem;margin-top:.3rem;}
+.hsec li{margin-bottom:.18rem;}
+.hstep{display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.4rem;}
+.hstep-n{background:var(--b);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;margin-top:.1rem;}
+.hstep-t{font-size:.78rem;line-height:1.55;color:#333;}
+.htag{display:inline-block;padding:.1rem .38rem;border-radius:5px;font-size:.7rem;font-weight:700;vertical-align:middle;white-space:nowrap;}
+.htag-g{background:#66fa75;color:#000;}.htag-y{background:#fad65f;color:#000;}
+.htag-lm{background:#e8fcb6;color:#000;}.htag-o{background:#ffefc2;color:#000;}
+.htag-b{background:#964100;color:#fff;}.htag-r{background:#fc7b3a;color:#000;}
+.htag-v{background:#7c3aed;color:#fff;}.htag-t{background:#0369a1;color:#fff;}
+.htag-tl{background:#0f766e;color:#fff;}
+.hnote{background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:.45rem .7rem;font-size:.73rem;color:#78350f;margin-top:.5rem;line-height:1.55;}
+.hnote strong{color:#92400e;}
+.hkb{display:inline-block;background:#f3f4f6;border:1px solid #d1d5db;border-radius:4px;padding:.05rem .32rem;font-family:monospace;font-size:.72rem;color:#374151;}
+
+/* ── PRINT ──────────────────────────────────────── */
+@media print{
+  header,#nav-bar,footer,.sidebar,.mhdr .mact-btns,.mclose{display:none!important;}
+  .modal{position:static!important;box-shadow:none!important;width:100%!important;max-height:none!important;}
+  .overlay{position:static!important;background:none!important;padding:0!important;}
+  body{height:auto!important;overflow:visible!important;}
+  @page{size:A4 landscape;margin:.5cm;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<header>
+
+  <div class="hdr-info">
+    <div class="hdr-brand">FC Role Matrix Aggregator</div>
+    <div class="hdr-sub">YNL Garments · FC Framework · v10</div>
+  </div>
+  <div class="hdr-divider"></div>
+  <div class="hdr-actions">
+    <button class="hbtn" id="nb-overview" style="background:#fff;color:#1a3a6b;" onclick="switchTab('overview')">📊 Overview</button>
+    <label class="hbtn-label snap-hide" style="background:#66fa75;color:#000;" title="Load entire folder">
+      📁 Load Folder
+      <input type="file" webkitdirectory accept=".html" onchange="loadFiles(this.files)" style="display:none">
+    </label>
+    <input id="search-name" class="hsearch" type="text" placeholder="🔍 Name / ID No."
+      oninput="searchByNameID(this.value)"
+      onkeydown="if(event.key==='Escape'){this.value='';renderCurrentTab();}">
+    <button class="hbtn" style="background:#7c3aed;color:#fff;" onclick="openDBView('matrix')">🎯 Role Matrix</button>
+    <button class="hbtn" style="background:#0369a1;color:#fff;" onclick="openDBView('comps')">📚 Competencies</button>
+    <button class="hbtn" style="background:#0f766e;color:#fff;" onclick="openDBView('dict')">📖 Dictionary</button>
+    <input type="file" id="db-file-input" accept=".html" style="display:none">
+    <button class="hbtn" style="background:#fc7b3a;color:#000;" onclick="clearAll()">🗑️ Clear</button>
+  </div>
+  <div class="hdr-right">
+    <a href="index.html" class="hbtn snap-hide" style="background:#e2e8f0;color:#1a3a6b;text-decoration:none;">🏠 Home</a>
+    <button class="hbtn" style="background:#c7d2fe;color:#1e1b4b;" onclick="openHelp()" title="User Manual">❓ Help</button>
+    <button class="hbtn snap-hide" style="background:#fad65f;color:#000;" onclick="startSaveEmbedded()" title="Save with Database content embedded">💾 Save</button>
+    <button class="hbtn snap-hide" style="background:#e8fcb6;color:#000;" onclick="saveHTML()">💾 Save Report</button>
+    <button class="hbtn" style="background:#ffefc2;color:#000;" onclick="window.print()">🖨️ Print PDF</button>
+    <button class="hbtn" style="background:#964100;color:#fff;" onclick="exportCSV()">📊 CSV</button>
+    <div id="clkw"><div id="clkt">00:00:00</div><div id="clkd">--- -- ----</div></div>
+  </div>
+</header>
+
+<!-- ══════════════════ LAYOUT ══════════════════ -->
+<div class="layout">
+  <div class="main-area">
+
+    <!-- STAT STRIP -->
+    <div id="nav-bar">
+      <div id="stat-strip">
+        <div class="nav-card" onclick="openNavModal('depts')" title="View all departments"><div class="nc-num" id="nc-depts-num">0</div><div class="nc-lbl">Departments</div></div>
+        <div class="nav-card" onclick="openNavModal('roles')" title="View all roles"><div class="nc-num" id="nc-roles-num">0</div><div class="nc-lbl">Total Roles</div></div>
+        <div class="nav-card" onclick="openNavModal('comps')" title="View all competencies"><div class="nc-num" id="nc-comps-num">0</div><div class="nc-lbl">Unique Competencies</div></div>
+        <div class="nav-card" onclick="openNavModal('curdata')" title="View roles with current data"><div class="nc-num" id="nc-curdata-num">0</div><div class="nc-lbl">Roles w/ Current Data</div></div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-content">
+      <div style="display:flex;gap:1.2rem;align-items:flex-start;padding:.2rem 0;">
+        <div style="flex:1;min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.5rem 1.9rem;text-align:left;box-shadow:0 1px 6px rgba(0,0,0,.07);">
+          <div style="font-size:1.08rem;font-weight:800;color:var(--b);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem;">🏭 HRBP &amp; FC Role Matrix Aggregator</div>
+          <p style="font-size:.94rem;line-height:1.75;color:#374151;margin-bottom:.8rem;">
+            <strong>HRBP (Human Resources Business Partner)</strong> is the strategic HR function embedded within YNL Garments' operational structure, serving as the primary link between business units and the central People &amp; Organisation division. HRBPs work directly alongside department heads and line managers to ensure that every team is staffed with the right people, equipped with the right competencies, and developed along a structured career pathway aligned with the company's long-term objectives.
+          </p>
+          <p style="font-size:.94rem;line-height:1.75;color:#374151;margin-bottom:.8rem;">
+            As part of the <strong>FC (Functional Competency) Framework</strong>, the HRBP team maintains a comprehensive <strong>Role Matrix</strong> for every department across the YNL Garments organisation. Each Role Matrix defines the competencies required for every position, the proficiency levels expected at each grade, and — when current data is available — the actual assessed level of each employee. This structured documentation enables HR and department leaders to identify skill gaps, plan targeted learning interventions, prioritise succession pipelines, and make objective, evidence-based decisions on promotions and role assignments.
+          </p>
+          <div style="border-top:1px solid var(--line);padding-top:.8rem;margin-top:.2rem;">
+            <div style="font-size:.92rem;font-weight:700;color:var(--b);margin-bottom:.5rem;">📊 About This Application</div>
+            <p style="font-size:.92rem;line-height:1.75;color:#374151;margin-bottom:.55rem;">
+              The <strong>FC Role Matrix Aggregator</strong> is an offline, browser-based tool developed to consolidate individual department Role Matrix HTML reports into a single, unified, and dynamic synthetic dashboard. Prior to this tool, HR Business Partners were required to open and cross-reference each department's report file separately — a time-consuming process prone to inconsistency. This application eliminates that overhead by allowing users to load an entire folder of reports at once and immediately access an aggregated, organisation-wide view.
+            </p>
+            <p style="font-size:.92rem;line-height:1.75;color:#374151;margin-bottom:.45rem;">Once reports are loaded, the Aggregator provides the following capabilities:</p>
+            <ul style="font-size:.92rem;line-height:1.85;color:#374151;padding-left:1.4rem;margin-bottom:.55rem;">
+              <li>A <strong>Department Summary table</strong> showing competency counts, roles mapped, current-data coverage rates, average competency gap scores, and report dates — all in one scrollable view</li>
+              <li>A <strong>Total Roles roster</strong> listing every position across all loaded departments, with FC codes, employee names, and ID numbers, filterable and searchable in real time</li>
+              <li>A <strong>Competency Gap Analysis</strong> that ranks all FC competencies by their average gap score (Current − Required) to highlight where the organisation is strongest and where targeted development is most urgent</li>
+              <li>A <strong>Name / ID Search</strong> function enabling HR to instantly locate any individual across all departments without navigating department by department</li>
+              <li>Integrated links to the <strong>FC Database</strong> (Full Role Matrix, Competency Library, and Competency Dictionary) for deep-dive reference</li>
+              <li>One-click <strong>Print PDF</strong> and <strong>CSV Export</strong> for offline reporting and data sharing with stakeholders</li>
+            </ul>
+            <p style="font-size:.88rem;color:var(--muted);line-height:1.65;">All data is processed entirely within your local browser. No files are uploaded to any server and no internet connection is required. Reports can be saved as a self-contained HTML snapshot for archiving or sharing.</p>
+          </div>
+        </div>
+        <div class="empty-state" style="flex:0 0 300px;padding:0;background:transparent;border:none;box-shadow:none;">
+          <div class="icon">📂</div>
+          <h3>No reports loaded yet</h3>
+          <p>Use <strong>📁 Load Folder</strong> to load<br><code>Role_Matrix_YNL_Dept_yyyy-mm-dd.html</code> files.</p>
+          <label class="drop-zone" id="dzn">
+            <div class="dz-icon">📥</div>
+            <div class="dz-title">Drop HTML report files here</div>
+            <div class="dz-sub">or click to browse</div>
+            <input type="file" accept=".html" multiple onchange="loadFiles(this.files)" style="display:none">
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-hdr">
+      Loaded Reports <span class="sb-cnt" id="sbc">0</span>
+    </div>
+    <div style="padding:.35rem .55rem .1rem;">
+      <input id="sb-filter" class="sb-search" type="text" placeholder="Filter departments…"
+        oninput="filterSidebar(this.value)"
+        onkeydown="if(event.key==='Escape'){this.value='';filterSidebar('');}">
+    </div>
+    <div class="sb-list" id="sbl">
+      <div class="sb-empty" id="sbt">No reports loaded.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="fl">FC Role Matrix Aggregator v10 — YNL Garments</span>
+  <span class="fr">CONFIDENTIAL — Internal Use Only</span>
+</footer>
+
+<!-- ══════════════════ DEPT DETAIL MODAL ══════════════════ -->
+<div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mhdr">
+      <div class="mtitle" id="mtitle">Report</div>
+      <div class="mact-btns">
+        <button class="hbtn" style="background:#00159c;color:#fff;font-size:.72rem;" onclick="printModal()">🖨️ Print PDF</button>
+        <button class="hbtn" style="background:#964100;color:#fff;font-size:.72rem;" onclick="exportModalCSV()">📊 CSV</button>
+      </div>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ HELP MODAL ══════════════════ -->
+<div class="overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="help-modal">
+    <div class="mhdr">
+      <div class="mtitle">❓ FC Role Matrix Aggregator — User Manual</div>
+      <button class="mclose" onclick="closeHelp()">✕</button>
+    </div>
+    <div class="help-toc">
+      <a href="#h-overview" onclick="event.preventDefault();helpScrollTo('h-overview')">Overview</a>
+      <a href="#h-load" onclick="event.preventDefault();helpScrollTo('h-load')">Loading Reports</a>
+      <a href="#h-stats" onclick="event.preventDefault();helpScrollTo('h-stats')">Stat Cards</a>
+      <a href="#h-table" onclick="event.preventDefault();helpScrollTo('h-table')">Overview Table</a>
+      <a href="#h-search" onclick="event.preventDefault();helpScrollTo('h-search')">Search</a>
+      <a href="#h-dept" onclick="event.preventDefault();helpScrollTo('h-dept')">Dept Detail</a>
+      <a href="#h-db" onclick="event.preventDefault();helpScrollTo('h-db')">Database Viewer</a>
+      <a href="#h-sidebar" onclick="event.preventDefault();helpScrollTo('h-sidebar')">Sidebar</a>
+      <a href="#h-save" onclick="event.preventDefault();helpScrollTo('h-save')">Save</a>
+      <a href="#h-savehtml" onclick="event.preventDefault();helpScrollTo('h-savehtml')">Save Report</a>
+      <a href="#h-print" onclick="event.preventDefault();helpScrollTo('h-print')">Print / CSV</a>
+      <a href="#h-clear" onclick="event.preventDefault();helpScrollTo('h-clear')">Clear</a>
+      <a href="#h-tips" onclick="event.preventDefault();helpScrollTo('h-tips')">Tips &amp; Notes</a>
+    </div>
+    <div class="help-body" id="help-body">
+
+      <!-- 1. OVERVIEW -->
+      <div class="hsec" id="h-overview">
+        <div class="hsec-title">1. Overview</div>
+        <p>The <strong>FC Role Matrix Aggregator</strong> is an internal HR tool for YNL Garments that consolidates individual department Role Matrix HTML reports into a single unified view. It lets you compare competency requirements and current levels across all departments, search by employee name or ID, export data, and produce printable reports — all without any server or internet connection.</p>
+      </div>
+
+      <!-- 2. LOADING REPORTS -->
+      <div class="hsec" id="h-load">
+        <div class="hsec-title">2. Loading Department Reports</div>
+        <p><strong>Expected filename format:</strong></p>
+        <p style="background:#f3f4f6;border-radius:6px;padding:.35rem .6rem;font-family:monospace;font-size:.76rem;margin:.3rem 0 .6rem;">Role_Matrix_YNL_<em>DepartmentName</em>_YYYY-MM-DD.html</p>
+        <p>Files that do not match this pattern are skipped with a warning toast.</p>
+        <p style="margin-top:.5rem;"><strong>Three ways to load files:</strong></p>
+        <div class="hstep"><div class="hstep-n">A</div><div class="hstep-t"><span class="htag htag-g">📁 Load Folder</span> — Click this button and select the <em>entire folder</em> containing the report files. All matching <code>.html</code> files in that folder are loaded at once.</div></div>
+        <div class="hstep"><div class="hstep-n">B</div><div class="hstep-t"><strong>Drag &amp; Drop</strong> — Drag one or more report HTML files directly onto the drop zone shown on the empty-state screen.</div></div>
+        <div class="hstep"><div class="hstep-n">C</div><div class="hstep-t"><strong>Click the drop zone</strong> — Click the dashed box on the empty-state screen to open a standard file picker and choose individual files.</div></div>
+        <div class="hnote"><strong>Re-loading a report</strong> that is already loaded automatically <em>updates</em> it in place (detected by filename or department name). Any name edits you made are preserved.</div>
+      </div>
+
+      <!-- 3. STAT CARDS -->
+      <div class="hsec" id="h-stats">
+        <div class="hsec-title">3. Stat Cards (Navigation Bar)</div>
+        <p>Four clickable cards appear below the header once reports are loaded:</p>
+        <ul>
+          <li><strong>Departments</strong> — total number of loaded departments. Click to open a sortable list.</li>
+          <li><strong>Total Roles</strong> — sum of all roles across all departments. Click to list every role with name and ID.</li>
+          <li><strong>Unique Competencies</strong> — number of distinct competency names. Click to see which departments use each and the average required level.</li>
+          <li><strong>Roles w/ Current Data</strong> — roles that have a current proficiency score recorded. Click to list them with average gap indicators.</li>
+        </ul>
+        <p style="margin-top:.4rem;">All four modals update in real time as more reports are loaded.</p>
+      </div>
+
+      <!-- 4. OVERVIEW TABLE -->
+      <div class="hsec" id="h-table">
+        <div class="hsec-title">4. Overview Table</div>
+        <p>The main area shows a summary table with one row per department:</p>
+        <ul>
+          <li><strong>Department</strong> — click any row to open that department's full detail modal.</li>
+          <li><strong>Roles</strong> — number of roles defined in that report.</li>
+          <li><strong>Competencies</strong> — number of competency columns in that report.</li>
+          <li><strong>Coverage</strong> — percentage of roles that have current data entered.</li>
+          <li><strong>Avg Gap</strong> — average difference between current and required proficiency for roles with data. Green = meeting or exceeding requirements; red = below requirements.</li>
+          <li><strong>Date</strong> — report date extracted from the filename.</li>
+          <li><strong>Edit</strong> button — rename the department label (see below).</li>
+        </ul>
+
+        <p style="margin-top:.5rem;"><strong>Editing a department name:</strong></p>
+        <div class="hstep"><div class="hstep-n">1</div><div class="hstep-t">Click the <strong>Edit</strong> button on any row in the overview table.</div></div>
+        <div class="hstep"><div class="hstep-n">2</div><div class="hstep-t">Type the new name in the prompt dialog and click OK.</div></div>
+        <div class="hstep"><div class="hstep-n">3</div><div class="hstep-t">The name updates everywhere (overview, sidebar, modals). It is preserved when you use <span class="htag htag-y">💾 Save</span> or <span class="htag htag-lm">💾 Save Report</span>.</div></div>
+      </div>
+
+      <!-- 5. SEARCH -->
+      <div class="hsec" id="h-search">
+        <div class="hsec-title">5. Search (Name / ID No.)</div>
+        <p>The <strong>🔍 Name / ID No.</strong> search box in the header searches <em>all loaded departments simultaneously</em>.</p>
+        <ul>
+          <li>Type any part of an employee name, ID number, or role title.</li>
+          <li>Matching text is highlighted in yellow.</li>
+          <li>Click any result row to open that department's full detail modal.</li>
+          <li>Press <span class="hkb">Esc</span> or clear the box to return to the Overview table.</li>
+        </ul>
+      </div>
+
+      <!-- 6. DEPARTMENT DETAIL MODAL -->
+      <div class="hsec" id="h-dept">
+        <div class="hsec-title">6. Department Detail Modal</div>
+        <p>Click any department row (or sidebar item) to open a detailed modal showing:</p>
+        <ul>
+          <li><strong>Role Matrix table</strong> — every role with columns for each competency. For each competency: <em>Req</em> (required level), <em>Cur</em> (current level), <em>Gap</em> (difference). Green ✔ or + means meeting/exceeding; red negative means a shortfall.</li>
+          <li><strong>Level Key</strong> — colour-coded circles 1–6 indicating proficiency levels.</li>
+          <li><strong>Competency Gap Charts</strong> — one bar chart per role showing required vs. current levels and any gap visually.</li>
+        </ul>
+        <p style="margin-top:.4rem;"><strong>Modal actions:</strong></p>
+        <ul>
+          <li><strong>🖨️ Print PDF</strong> — opens a clean print-optimised version of the modal in a new window and triggers the print dialog.</li>
+          <li><strong>📊 CSV</strong> — downloads a CSV file for this department containing all roles and competency data.</li>
+          <li><strong>✕</strong> — close the modal (or click outside it).</li>
+        </ul>
+      </div>
+
+      <!-- 7. DATABASE VIEWER -->
+      <div class="hsec" id="h-db">
+        <div class="hsec-title">7. Database Viewer Buttons</div>
+        <p>Three buttons open the FC Framework Database in a separate window:</p>
+        <ul>
+          <li><span class="htag htag-v">🎯 Role Matrix</span> — opens the role matrix reference tab.</li>
+          <li><span class="htag htag-t">📚 Competencies</span> — opens the competency definitions tab.</li>
+          <li><span class="htag htag-tl">📖 Dictionary</span> — opens the competency dictionary tab.</li>
+        </ul>
+        <p style="margin-top:.3rem;">In the <strong>working version</strong>, <code>database/database.html</code> is <strong>automatically loaded in the background</strong> when the tool opens — no action required. In a <strong>saved version</strong> (generated by <span class="htag htag-y">💾 Save</span>), the database content is decoded from the embedded copy — no external file is needed at all.</p>
+      </div>
+
+      <!-- 8. SIDEBAR -->
+      <div class="hsec" id="h-sidebar">
+        <div class="hsec-title">8. Sidebar — Loaded Reports</div>
+        <p>The panel on the right lists all loaded department reports.</p>
+        <ul>
+          <li><strong>Filter box</strong> — type to filter the sidebar list by department name. Press <span class="hkb">Esc</span> to clear.</li>
+          <li><strong>Click a card</strong> — opens that department's detail modal.</li>
+          <li><strong>✕ (remove) button</strong> — top-right of each card — removes that department from the session without affecting the original file.</li>
+          <li>The count badge next to "Loaded Reports" shows how many are currently loaded.</li>
+        </ul>
+      </div>
+
+      <!-- 9. SAVE -->
+      <div class="hsec" id="h-save">
+        <div class="hsec-title">9. 💾 Save — Working Copy with Embedded Data</div>
+        <p>Creates a self-contained copy of the tool with all currently loaded report data <strong>and</strong> the FC Database baked in. This is the file you use day-to-day.</p>
+        <div class="hstep"><div class="hstep-n">1</div><div class="hstep-t">Click <span class="htag htag-y">💾 Save</span>. <strong>No file picker appears</strong> — the tool automatically reads <code>database/database.html</code> (already loaded in the background) and embeds it without any extra step.</div></div>
+        <div class="hstep"><div class="hstep-n">2</div><div class="hstep-t">A file is downloaded with the <strong>same filename</strong> as the working tool (e.g. <code>fc_aggregator_V2.2_blank.html</code>). Replace your working copy with this downloaded file.</div></div>
+        <div class="hnote"><strong>All buttons remain active</strong> in this saved version — you can continue loading new reports, editing names, and saving again. The 🎯/📚/📖 Database buttons work from the embedded copy, so no external files are required.</div>
+      </div>
+
+      <!-- 10. SAVE HTML -->
+      <div class="hsec" id="h-savehtml">
+        <div class="hsec-title">10. 💾 Save Report — Read-Only Snapshot</div>
+        <p>Creates a dated <em>snapshot</em> of the current state for sharing or archiving. The file name includes today's date and time (e.g. <code>HRBP_FC_Aggregated_Report_V2.2_2026-04-09_Time_0830.html</code>).</p>
+        <ul>
+          <li>All report data is embedded — recipients can open and browse without loading anything.</li>
+          <li>The database is carried over automatically from the background-loaded copy.</li>
+          <li>The <span class="htag htag-g">📁 Load Folder</span>, <span class="htag htag-y">💾 Save</span>, and <span class="htag htag-lm">💾 Save Report</span> buttons are <strong>hidden</strong> in snapshot files — the file is intentionally view-only.</li>
+        </ul>
+        <p style="margin-top:.5rem;"><strong>Manifest auto-update:</strong> Immediately after the snapshot is downloaded, the tool also downloads an updated <code>manifest.json</code> file that lists all saved report filenames (newest first). Upload <em>both</em> files to the <code>updated_status/</code> folder on the server so the report index stays current.</p>
+        <div class="hnote"><strong>Workflow tip:</strong> Use <span class="htag htag-y">💾 Save</span> to update your working copy (with the latest report data), then use <span class="htag htag-lm">💾 Save Report</span> to produce a fully-embedded, shareable snapshot — and upload both the HTML and <code>manifest.json</code> to <code>updated_status/</code>.</div>
+      </div>
+
+      <!-- 11. PRINT / CSV -->
+      <div class="hsec" id="h-print">
+        <div class="hsec-title">11. 🖨️ Print PDF &amp; 📊 CSV</div>
+        <p><span class="htag htag-o">🖨️ Print PDF</span> — prints the current main view (overview table or search results) as a landscape A4 PDF via the browser's print dialog. To print a single department's matrix, use the Print button inside its detail modal instead.</p>
+        <p style="margin-top:.4rem;"><span class="htag htag-b">📊 CSV</span> — exports a summary CSV of all roles across all departments (Department, FC Code, Role, Name, ID No., Date). For a competency-level CSV of one department, use the CSV button inside that department's modal.</p>
+      </div>
+
+      <!-- 12. CLEAR -->
+      <div class="hsec" id="h-clear">
+        <div class="hsec-title">12. 🗑️ Clear</div>
+        <p>Removes all loaded reports and resets the tool to the empty state. The page does <em>not</em> refresh — your working file is unchanged. Use this when you want to start fresh with a different set of departments.</p>
+      </div>
+
+      <!-- 13. TIPS -->
+      <div class="hsec" id="h-tips">
+        <div class="hsec-title">13. Tips &amp; Notes</div>
+        <ul>
+          <li><strong>Database auto-load</strong> — when running as the live working file, <code>database/database.html</code> is fetched silently in the background as soon as the page opens. The 🎯/📚/📖 buttons and <span class="htag htag-y">💾 Save</span> use this automatically — no manual selection needed.</li>
+          <li><strong>File:// limitations</strong> — the tool runs entirely in your browser from the local file system. Auto-loading the database and some other features (logo embedding) require running from a local web server (e.g. Firebase Hosting or VS Code Live Server) rather than opening directly via <code>file://</code>. If you open the file directly, use a browser launched with <code>--allow-file-access-from-files</code>, or use a saved/embedded version.</li>
+          <li><strong>No internet required</strong> — Chart.js is loaded once from a CDN on first open; after that, all features work offline.</li>
+          <li><strong>Clock</strong> — the live clock in the header shows the current time and date. It is decorative and has no effect on saving or exporting.</li>
+          <li><strong>Department order</strong> — the overview table sorts alphabetically. Sidebar order reflects loading order.</li>
+          <li><strong>Duplicate detection</strong> — if you load a file with the same department name or filename as one already loaded, it is <em>updated</em> in place. Custom names you edited are preserved.</li>
+          <li><strong>Browser compatibility</strong> — tested in Google Chrome. Most features work in Edge and Firefox; the file-picker and auto-load flows are optimised for Chrome.</li>
+        </ul>
+      </div>
+
+    </div><!-- /help-body -->
+  </div><!-- /help-modal -->
+</div><!-- /help-overlay -->
+
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ══════════════════ SCRIPT ══════════════════ -->
+<script>
+// ── STATE ────────────────────────────────────────────
+const reports = [];     // parsed report objects
+let _ch = {};           // active Chart.js instances
+let _curTab = 'overview';
+let _nameSearch = '';   // cross-tab name/ID search
+
+const LC = {1:'#edfad4',2:'#93fa2d',3:'#03ffb7',4:'#f7ef77',5:'#fa8c05',6:'#0099ff'};
+
+// Absolute URL to database — works from any subdirectory (e.g. when snapshot runs
+// inside an iframe from updated_status/). For file:// access, fall back to relative path.
+const _DB_URL = (location.origin && location.origin !== 'null')
+  ? location.origin + '/database/database.html'
+  : 'database/database.html';
+
+// ── CLOCK ────────────────────────────────────────────
+(function tickClock(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('clkt').textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clkd').textContent = days[d.getDay()]+' '+pad(d.getDate())+' '+months[d.getMonth()]+' '+d.getFullYear();
+  setTimeout(tickClock, 1000);
+})();
+
+// ── DRAG & DROP ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const dzn = document.getElementById('dzn');
+  if(dzn){
+    dzn.addEventListener('dragover', e => { e.preventDefault(); dzn.classList.add('over'); });
+    dzn.addEventListener('dragleave', () => dzn.classList.remove('over'));
+    dzn.addEventListener('drop', e => { e.preventDefault(); dzn.classList.remove('over'); loadFiles(e.dataTransfer.files); });
+  }
+  // Auto-load database — prefer body-embedded copy, fallback to file fetch.
+  // Priority: 1) #embedded-db in body  2) window._DB_B64 (legacy head injection)  3) fetch
+  const _embDb = document.getElementById('embedded-db');
+  if(_embDb && _embDb.textContent.trim()){
+    window._DB_B64 = _embDb.textContent.trim();            // already embedded in body
+  } else if(window._DB_B64){
+    if(_embDb) _embDb.textContent = window._DB_B64;        // legacy head var → sync to body
+  } else {
+    fetch(_DB_URL)
+      .then(r => r.text())
+      .then(text => {
+        window._DB_B64 = btoa(unescape(encodeURIComponent(text)));
+        if(_embDb) _embDb.textContent = window._DB_B64;    // embed in body
+      })
+      .catch(() => {});
+  }
+});
+
+// ── LOAD FILES ───────────────────────────────────────
+function loadFiles(files){
+  const htmlFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.html'));
+  if(!htmlFiles.length){ toast('⚠️ No .html files found'); return; }
+  htmlFiles.forEach(f => {
+    const r = new FileReader();
+    r.onload = e => parseReport(f.name, e.target.result);
+    r.readAsText(f);
+  });
+}
+
+// ── COMPETENCY NAME NORMALISATION MAP ─────────────────
+const COMP_NAME_MAP = {
+  'Collabrating and Influencing Others':                         'Collaborating and Influencing Others',
+  'Enviroment Management':                                       'Environment Management',
+  'Enbroidery Technical Knowledge':                              'Embroidery Technical Knowledge',
+  'Attention to Detail':                                         'Attention to details',
+  'Time Management:':                                            'Time Management',
+  'Production Planning:':                                        'Production Planning',
+  'Using accounting software & other relevants softwares/ tools':'Using accounting software & other relevant software/ tools',
+  'Knowledge of Accounting standard and company regulation on Accounting':'Knowledge of Accounting standards and company regulations on Accounting',
+  'End-User Support and Troubleshooting':                        'Enduser Support and Troubleshooting',
+  'Fabric & Material Defect Classification and Analysis':        'Fabric and Material Defect classification and analysis',
+  'Fabric and Material Inspection Techniques':                   'Fabric & Material Inspection Techniques',
+  'Garment and Texitles Manufacturing Technical Knowledge':      'Garment Manufacturing Technical Knowledge',
+};
+function normCompName(n){ return COMP_NAME_MAP[n] || n; }
+
+// ── PARSE REPORT ─────────────────────────────────────
+function parseReport(fname, content){
+  const m = fname.match(/Role_Matrix_YNL_(.+?)_(\d{4}-\d{2}-\d{2})\.html/i);
+  if(!m){ toast('⚠️ Skipped (unexpected filename): ' + fname); return; }
+  const deptName = m[1].replace(/_/g,' ');
+  const date = m[2];
+
+  const doc = new DOMParser().parseFromString(content, 'text/html');
+  const table = doc.querySelector('table');
+  if(!table){ toast('❌ Cannot parse table: ' + fname); return; }
+
+  // Extract competency names from first header row (colspan=3 cells)
+  // Strip trailing ellipsis that some older exports write into title/text
+  // Strip accidental " Req" / " Cur" / " Gap" suffixes (can appear when Excel import
+  // reads separate column headers instead of merged cells for the 3-column group)
+  // Normalise legacy/typo names so old reports link to the dictionary correctly
+  const allComps = [];
+  doc.querySelectorAll('thead tr:first-child th[colspan="3"]').forEach(th => {
+    const raw = th.getAttribute('title') || th.textContent.trim();
+    const cleaned = raw.replace(/\u2026$/, '').trimEnd().replace(/\s+(Req|Cur|Gap)$/i, '').trimEnd();
+    allComps.push(normCompName(cleaned));
+  });
+
+  const roles = [], cur = {};
+  table.querySelectorAll('tbody tr').forEach((tr, ri) => {
+    const tds = tr.querySelectorAll('td');
+    if(tds.length < 2) return;
+    const code  = tds[0]?.textContent.trim() || '';
+    const role  = tds[1]?.textContent.trim() || '';
+    const name  = tds[2]?.textContent.trim() || '';
+    const idno  = tds[3]?.textContent.trim() || '';
+    const competencies = {}, curRow = {};
+    allComps.forEach((c, ci) => {
+      const base = 4 + ci * 3;
+      const rv = parseInt(tds[base]?.textContent);
+      const cv = parseInt(tds[base+1]?.textContent);
+      if(!isNaN(rv) && rv >= 1 && rv <= 6) competencies[c] = rv;
+      if(!isNaN(cv) && cv >= 1 && cv <= 6) curRow[c] = cv;
+    });
+    roles.push({ code, role, name, idno, competencies });
+    // Use roles.length-1 (not raw tr index ri) so cur keys align with the
+    // roles-array index used everywhere else (openModal, renderGaps, etc.)
+    if(Object.keys(curRow).length > 0) cur[roles.length - 1] = curRow;
+  });
+
+  const report = { fname, deptName, date, roles, allComps, cur };
+  // Match by deptName OR by fname so reloading a renamed dept updates instead of duplicating
+  const existing = reports.findIndex(r => r && (r.deptName === deptName || r.fname === fname));
+  if(existing >= 0){
+    const userLabel = reports[existing].deptName; // preserve any user rename
+    reports[existing] = report;
+    if(userLabel !== deptName) report.deptName = userLabel;
+    rebuildSidebar();
+    renderCurrentTab();
+    toast('🔄 Updated: ' + report.deptName);
+  } else {
+    reports.push(report);
+    rebuildSidebar();
+    renderCurrentTab();
+    toast('✅ Loaded: ' + deptName);
+  }
+  updateStats();
+}
+
+// ── STATS BAR ────────────────────────────────────────
+function updateStats(){
+  const active = reports.filter(x => x);
+  const totalRoles = active.reduce((s, r) => s + r.roles.length, 0);
+  const allCompsSet = new Set();
+  active.forEach(r => r.allComps.forEach(c => allCompsSet.add(c)));
+  const totalWithData = active.reduce((s, r) => s + Object.keys(r.cur).length, 0);
+  document.getElementById('nc-depts-num').textContent   = active.length;
+  document.getElementById('nc-roles-num').textContent   = totalRoles;
+  document.getElementById('nc-comps-num').textContent   = allCompsSet.size;
+  document.getElementById('nc-curdata-num').textContent = totalWithData;
+}
+
+// ── SIDEBAR ──────────────────────────────────────────
+function rebuildSidebar(){
+  const active = reports.map((r,i) => ({r,i})).filter(x => x.r);
+  active.sort((a,b) => a.r.deptName.localeCompare(b.r.deptName));
+  const sbl = document.getElementById('sbl');
+  sbl.innerHTML = '';
+  const sbt = document.createElement('div');
+  sbt.className = 'sb-empty';
+  sbt.id = 'sbt';
+  sbt.textContent = 'No reports loaded.';
+  sbt.style.display = active.length ? 'none' : 'block';
+  sbl.appendChild(sbt);
+  active.forEach(({r, i}) => sbl.appendChild(makeSBI(i, r)));
+  document.getElementById('sbc').textContent = active.length;
+  filterSidebar(document.getElementById('sb-filter')?.value || '');
+}
+
+function makeSBI(idx, r){
+  const d = document.createElement('div');
+  d.className = 'sbi';
+  d.id = 'sbi' + idx;
+  d.onclick = () => openModal(idx);
+  const short = r.deptName.length > 20 ? r.deptName.substring(0,18) + '…' : r.deptName;
+  d.innerHTML =
+    '<div class="sbi-thumb">🎯 ' + short + '</div>'
+    +'<div class="sbi-lbl">'
+    +'<button class="sbi-rm" onclick="rmReport(event,'+idx+')" title="Remove">✕</button>'
+    +'<div class="sbi-name">' + r.deptName + '</div>'
+    +'<div class="sbi-meta">' + r.roles.length + ' roles · ' + r.allComps.length + ' comps · ' + r.date + '</div>'
+    +'</div>';
+  return d;
+}
+
+function filterSidebar(q){
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.sbi').forEach(el => {
+    const name = el.querySelector('.sbi-name')?.textContent.toLowerCase() || '';
+    el.style.display = (!q || name.includes(q)) ? '' : 'none';
+  });
+}
+
+function rmReport(e, idx){
+  e.stopPropagation();
+  reports[idx] = null;
+  rebuildSidebar();
+  updateStats();
+  renderCurrentTab();
+}
+
+function clearAll(){
+  reports.length = 0;
+  rebuildSidebar();
+  updateStats();
+  _nameSearch = '';
+  document.getElementById('search-name').value = '';
+  // Reset file inputs so Chrome re-fires onchange even if same folder is selected again
+  document.querySelectorAll('input[type="file"]').forEach(inp => inp.value = '');
+  renderCurrentTab();
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────
+function switchTab(tab){
+  _curTab = tab;
+  renderCurrentTab();
+}
+
+function renderCurrentTab(){
+  const active = reports.filter(x => x);
+  if(!active.length){
+    document.getElementById('main-content').innerHTML =
+      '<div style="display:flex;gap:1.2rem;align-items:flex-start;padding:.2rem 0;">'
+      +'<div style="flex:1;min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.5rem 1.9rem;text-align:left;box-shadow:0 1px 6px rgba(0,0,0,.07);">'
+      +'<div style="font-size:1.08rem;font-weight:800;color:var(--b);margin-bottom:.6rem;">🏭 HRBP &amp; FC Role Matrix Aggregator</div>'
+      +'<p style="font-size:.94rem;line-height:1.75;color:#374151;margin-bottom:.8rem;"><strong>HRBP (Human Resources Business Partner)</strong> is the strategic HR function embedded within YNL Garments\'s operational structure, serving as the primary link between business units and the central People &amp; Organisation division. HRBPs work directly alongside department heads and line managers to ensure that every team is staffed with the right people, equipped with the right competencies, and developed along a structured career pathway aligned with the company\'s long-term objectives.</p>'
+      +'<p style="font-size:.94rem;line-height:1.75;color:#374151;margin-bottom:.8rem;">As part of the <strong>FC (Functional Competency) Framework</strong>, the HRBP team maintains a comprehensive <strong>Role Matrix</strong> for every department. Each Role Matrix defines the competencies required for every position, the proficiency levels expected at each grade, and the actual assessed level of each employee — enabling HR to identify gaps, plan interventions, and make objective decisions on promotions and role assignments.</p>'
+      +'<div style="border-top:1px solid var(--line);padding-top:.8rem;">'
+      +'<div style="font-size:.92rem;font-weight:700;color:var(--b);margin-bottom:.5rem;">📊 About This Application</div>'
+      +'<p style="font-size:.92rem;line-height:1.75;color:#374151;margin-bottom:.45rem;">The <strong>FC Role Matrix Aggregator</strong> consolidates individual department Role Matrix HTML reports into a single unified dynamic dashboard, giving HR Business Partners an immediate organisation-wide view without opening each file separately.</p>'
+      +'<ul style="font-size:.92rem;line-height:1.85;color:#374151;padding-left:1.4rem;margin-bottom:.55rem;">'
+      +'<li>A <strong>Department Summary table</strong> — coverage rates, avg gap scores, report dates</li>'
+      +'<li>A <strong>Total Roles roster</strong> — FC codes, employee names, ID numbers, filterable in real time</li>'
+      +'<li>A <strong>Competency Gap Analysis</strong> — ranks all FC competencies by average gap score</li>'
+      +'<li>A <strong>Name / ID Search</strong> — locate any individual across all departments instantly</li>'
+      +'<li>Links to the <strong>FC Database</strong> and one-click <strong>PDF &amp; CSV export</strong></li>'
+      +'</ul>'
+      +'<p style="font-size:.88rem;color:var(--muted);">All data is processed entirely within your local browser — no server or internet connection required.</p>'
+      +'</div></div>'
+      +'<div class="empty-state" style="flex:0 0 300px;padding:0;background:transparent;border:none;box-shadow:none;">'
+      +'<div class="icon">📂</div><h3>No reports loaded</h3>'
+      +'<p>Use <strong>📁 Load Folder</strong> above.</p>'
+      +'<label class="drop-zone" id="dzn"><div class="dz-icon">📥</div>'
+      +'<div class="dz-title">Drop HTML report files here</div>'
+      +'<div class="dz-sub">or click to browse</div>'
+      +'<input type="file" accept=".html" multiple onchange="loadFiles(this.files)" style="display:none"></label>'
+      +'</div></div>';
+    reattachDrop();
+    return;
+  }
+  if(_curTab === 'overview') renderOverview(active);
+  else if(_curTab === 'roles') renderAllRoles(active);
+  else if(_curTab === 'gaps')  renderGaps(active);
+}
+
+function reattachDrop(){
+  const dzn = document.getElementById('dzn');
+  if(!dzn) return;
+  dzn.addEventListener('dragover', e => { e.preventDefault(); dzn.classList.add('over'); });
+  dzn.addEventListener('dragleave', () => dzn.classList.remove('over'));
+  dzn.addEventListener('drop', e => { e.preventDefault(); dzn.classList.remove('over'); loadFiles(e.dataTransfer.files); });
+}
+
+// ── OVERVIEW ─────────────────────────────────────────
+function renderOverview(active){
+  const sorted = [...active].sort((a,b) => a.deptName.localeCompare(b.deptName));
+
+  const q = (_nameSearch || '').toLowerCase().trim();
+  let filtered = sorted;
+  if(q) filtered = sorted.filter(r =>
+    r.deptName.toLowerCase().includes(q) ||
+    r.roles.some(role => role.name.toLowerCase().includes(q) || role.idno.toLowerCase().includes(q))
+  );
+
+  const rows = filtered.map((r, rowNum) => {
+    const idx = reports.indexOf(r);
+    const rwc = Object.keys(r.cur).length;
+    const pct = r.roles.length > 0 ? Math.round((rwc / r.roles.length) * 100) : 0;
+    let gs = 0, gc = 0;
+    r.roles.forEach((role, ri) => {
+      const rc = r.cur[ri] || {};
+      r.allComps.forEach(c => {
+        const req = role.competencies[c] || 0;
+        const cv  = rc[c] || 0;
+        if(req && cv){ gs += (cv - req); gc++; }
+      });
+    });
+    const ag = gc > 0 ? (gs / gc) : null;
+    const agStr = ag !== null ? (ag >= 0 ? '+' + ag.toFixed(2) : ag.toFixed(2)) : null;
+    const agBadge = agStr === null
+      ? '<span class="badge bk">No data</span>'
+      : parseFloat(agStr) >= 0
+        ? '<span class="badge bg">' + agStr + '</span>'
+        : '<span class="badge br">' + agStr + '</span>';
+
+    return '<tr onclick="openModal(' + idx + ')">'
+      + '<td style="text-align:center;color:var(--muted);font-size:.73rem;font-weight:600;">' + (rowNum+1) + '</td>'
+      + '<td style="font-weight:700;color:var(--b);">' + r.deptName + '</td>'
+      + '<td style="text-align:center;"><span class="badge bk">' + r.allComps.length + '</span></td>'
+      + '<td style="text-align:center;"><span class="badge bk">' + r.roles.length + '</span></td>'
+      + '<td style="text-align:center;"><span class="badge bk">' + rwc + '</span></td>'
+      + '<td><div style="display:flex;align-items:center;gap:.4rem;">'
+      + '<div class="prog"><div class="prog-fill" style="width:' + pct + '%"></div></div>'
+      + '<span style="font-size:.7rem;color:var(--muted);">' + pct + '%</span></div></td>'
+      + '<td style="text-align:center;">' + agBadge + '</td>'
+      + '<td><span class="badge bk" style="font-size:.66rem;">' + r.date + '</span></td>'
+      + '<td style="text-align:center;">'
+      + (window._SNAPSHOT
+          ? '<button disabled style="background:#e5e7eb;color:#aaa;border:none;border-radius:6px;padding:.2rem .55rem;font-size:.7rem;cursor:not-allowed;">Edit</button>'
+          : '<button onclick="event.stopPropagation();editDeptName(' + idx + ')" style="background:var(--b);color:#fff;border:none;border-radius:6px;padding:.2rem .55rem;font-size:.7rem;cursor:pointer;">Edit</button>')
+      + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const subtitle = q
+    ? filtered.length + ' of ' + active.length + ' departments · search: "' + q + '"'
+    : active.length + ' department' + (active.length !== 1 ? 's' : '') + ' loaded · Click a row to view full report';
+
+  document.getElementById('main-content').innerHTML = '<div class="sec-title">Department Summary</div>'
+    + '<div class="sec-sub">' + subtitle + '</div>'
+    + '<div class="tbl-wrap-sticky"><table class="data-tbl"><thead><tr>'
+    + '<th style="width:36px;text-align:center;">No.</th>'
+    + '<th>Department</th>'
+    + '<th style="text-align:center;">Competencies</th>'
+    + '<th style="text-align:center;">Roles Mapped</th>'
+    + '<th style="text-align:center;">Roles w/ Current</th>'
+    + '<th>Coverage</th>'
+    + '<th style="text-align:center;">Avg Gap</th>'
+    + '<th>Report Date</th>'
+    + '<th style="text-align:center;">Action</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+function card(num, lbl){
+  return '<div class="card"><div class="card-num">' + num + '</div><div class="card-lbl">' + lbl + '</div></div>';
+}
+
+// ── ALL ROLES TAB ─────────────────────────────────────
+function renderAllRoles(active){
+  // Collect all roles
+  let rows = [];
+  active.forEach(r => {
+    r.roles.forEach((role, ri) => {
+      rows.push({
+        dept: r.deptName, code: role.code, role: role.role,
+        name: role.name, idno: role.idno,
+        deptIdx: reports.indexOf(r), ri
+      });
+    });
+  });
+
+  const q = (_nameSearch || '').toLowerCase().trim();
+  if(q) rows = rows.filter(r =>
+    r.name.toLowerCase().includes(q) ||
+    r.idno.toLowerCase().includes(q) ||
+    r.role.toLowerCase().includes(q) ||
+    r.dept.toLowerCase().includes(q)
+  );
+  rows.sort((a,b) => a.dept.localeCompare(b.dept) || a.role.localeCompare(b.role));
+
+  const deptOptions = [...new Set(active.map(r => r.deptName))].sort()
+    .map(d => '<option value="' + d + '">' + d + '</option>').join('');
+
+  const subtitle = q
+    ? rows.length + ' roles · search: "' + q + '"'
+    : rows.length + ' roles across ' + active.length + ' departments';
+
+  const trows = rows.map((r, i) =>
+    '<tr onclick="openModal(' + r.deptIdx + ')">'
+    + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+    + '<td style="font-weight:600;color:var(--b);">' + r.dept + '</td>'
+    + '<td><span class="chip">' + (r.code || '—') + '</span></td>'
+    + '<td style="font-weight:500;">' + r.role + '</td>'
+    + '<td>' + r.name + '</td>'
+    + '<td style="font-family:monospace;font-size:.73rem;color:var(--muted);">' + r.idno + '</td>'
+    + '</tr>'
+  ).join('');
+
+  document.getElementById('main-content').innerHTML =
+    '<div class="filter-row">'
+    + '<select class="filt-sel" id="dept-filter" onchange="applyDeptFilter()">'
+    + '<option value="">All Departments</option>' + deptOptions
+    + '</select>'
+    + '<input class="filt-inp" id="role-filter" type="text" placeholder="Filter by role name…" oninput="applyDeptFilter()">'
+    + '</div>'
+    + '<div class="sec-sub">' + subtitle + '</div>'
+    + '<div class="tbl-wrap"><table class="data-tbl"><thead><tr>'
+    + '<th style="width:36px;text-align:center;">No.</th>'
+    + '<th>Department</th><th>FC Code</th><th>Role</th><th>Name</th>'
+    + '<th>ID No.</th>'
+    + '</tr></thead><tbody id="roles-tbody">' + trows + '</tbody></table></div>';
+}
+
+function applyDeptFilter(){
+  const deptQ = (document.getElementById('dept-filter')?.value || '').toLowerCase();
+  const roleQ = (document.getElementById('role-filter')?.value || '').toLowerCase().trim();
+  document.querySelectorAll('#roles-tbody tr').forEach(tr => {
+    const dept = tr.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+    const role = tr.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+    const show = (!deptQ || dept.includes(deptQ)) && (!roleQ || role.includes(roleQ));
+    tr.style.display = show ? '' : 'none';
+  });
+}
+
+// ── GAP SUMMARY TAB ──────────────────────────────────
+function renderGaps(active){
+  // Aggregate gaps per competency across all departments
+  const compGaps = {}; // compName -> {sum, count, negative, positive}
+  active.forEach(r => {
+    r.roles.forEach((role, ri) => {
+      const rc = r.cur[ri] || {};
+      r.allComps.forEach(c => {
+        const req = role.competencies[c] || 0;
+        const cv  = rc[c] || 0;
+        if(!req || !cv) return;
+        if(!compGaps[c]) compGaps[c] = {sum:0, count:0, neg:0, pos:0};
+        const g = cv - req;
+        compGaps[c].sum += g;
+        compGaps[c].count++;
+        if(g < 0) compGaps[c].neg++;
+        else compGaps[c].pos++;
+      });
+    });
+  });
+
+  const entries = Object.entries(compGaps)
+    .map(([c, d]) => ({ comp: c, avg: d.count > 0 ? d.sum / d.count : 0, ...d }))
+    .sort((a,b) => a.avg - b.avg);
+
+  if(!entries.length){
+    document.getElementById('main-content').innerHTML =
+      '<div class="empty-state"><div class="icon">📉</div><h3>No current-level data</h3>'
+      +'<p>Load reports that include "Cur" (current competency level) data.</p></div>';
+    return;
+  }
+
+  const rows = entries.map((e, i) => {
+    const avgStr = e.avg >= 0 ? '+' + e.avg.toFixed(2) : e.avg.toFixed(2);
+    const color = e.avg >= 0 ? 'var(--green)' : 'var(--red)';
+    const pct = Math.round(((e.avg + 5) / 10) * 100); // normalize to 0-100% for bar
+    const barColor = e.avg >= 0 ? '#03ffb7' : '#e74c3c';
+    return '<tr>'
+      + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+      + '<td style="font-weight:600;">' + e.comp + '</td>'
+      + '<td style="text-align:center;font-weight:700;color:' + color + ';">' + avgStr + '</td>'
+      + '<td style="text-align:center;">' + e.count + '</td>'
+      + '<td style="text-align:center;color:var(--red);">' + e.neg + '</td>'
+      + '<td style="text-align:center;color:var(--green);">' + e.pos + '</td>'
+      + '<td><div class="prog" style="min-width:80px;">'
+      + '<div class="prog-fill" style="width:' + Math.max(0, Math.min(100, pct)) + '%;background:' + barColor + '"></div></div></td>'
+      + '</tr>';
+  }).join('');
+
+  // Top gaps (most negative) and top strengths
+  const worst = entries.slice(0, 5);
+  const best  = [...entries].sort((a,b) => b.avg - a.avg).slice(0, 5);
+
+  const highlight = (arr, label, cls) =>
+    '<div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:.65rem .85rem;flex:1;min-width:220px;">'
+    + '<div style="font-weight:700;font-size:.8rem;color:var(--b);margin-bottom:.45rem;">' + label + '</div>'
+    + arr.map(e => {
+        const v = e.avg >= 0 ? '+' + e.avg.toFixed(2) : e.avg.toFixed(2);
+        return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid var(--line);font-size:.75rem;">'
+          + '<span>' + e.comp + '</span>'
+          + '<span class="badge ' + cls + '" style="font-size:.67rem;">' + v + '</span></div>';
+      }).join('')
+    + '</div>';
+
+  document.getElementById('main-content').innerHTML =
+    '<div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;">'
+    + highlight(worst, '⚠️ Top Gap Areas (most negative avg)', 'br')
+    + highlight(best,  '✅ Top Strength Areas (most positive avg)', 'bg')
+    + '</div>'
+    + '<div class="sec-title">All Competencies — Avg Gap</div>'
+    + '<div class="sec-sub">Avg Gap = Avg(Current − Required) across all roles with both values. Negative = below required.</div>'
+    + '<div class="tbl-wrap"><table class="data-tbl"><thead><tr>'
+    + '<th style="width:36px;text-align:center;">No.</th>'
+    + '<th>Competency</th>'
+    + '<th style="text-align:center;">Avg Gap</th>'
+    + '<th style="text-align:center;">Data Points</th>'
+    + '<th style="text-align:center;">Roles Below</th>'
+    + '<th style="text-align:center;">Roles At/Above</th>'
+    + '<th>Gap Bar</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+// ── NAME/ID SEARCH ────────────────────────────────────
+function searchByNameID(val){
+  _nameSearch = val.trim();
+  if(_nameSearch) renderNameSearch(_nameSearch);
+  else renderCurrentTab();
+}
+
+function renderNameSearch(q){
+  const active = reports.filter(x => x);
+  if(!active.length){ renderCurrentTab(); return; }
+  const ql = q.toLowerCase();
+  let rows = [];
+  active.forEach(r => {
+    r.roles.forEach((role, ri) => {
+      if(
+        role.name.toLowerCase().includes(ql) ||
+        role.idno.toLowerCase().includes(ql) ||
+        role.role.toLowerCase().includes(ql)
+      ){
+        const rc = r.cur[ri] || {};
+        // compute avg gap for this role
+        let gs = 0, gc = 0;
+        r.allComps.forEach(c => {
+          const req = role.competencies[c] || 0;
+          const cv  = rc[c] || 0;
+          if(req && cv){ gs += (cv - req); gc++; }
+        });
+        const ag = gc > 0 ? gs / gc : null;
+        rows.push({ r, idx: reports.indexOf(r), role, ri, ag });
+      }
+    });
+  });
+
+  const trows = rows.map((item, i) => {
+    const { r, idx, role, ag } = item;
+    const agStr = ag !== null ? (ag >= 0 ? '+' + ag.toFixed(2) : ag.toFixed(2)) : null;
+    const agBadge = agStr === null
+      ? '<span class="badge bk">–</span>'
+      : parseFloat(agStr) >= 0
+        ? '<span class="badge bg">' + agStr + '</span>'
+        : '<span class="badge br">' + agStr + '</span>';
+    // highlight matching text
+    const hl = (txt) => {
+      if(!txt) return '';
+      const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+      return txt.replace(re, '<mark style="background:#fef08a;border-radius:2px;">$1</mark>');
+    };
+    return '<tr onclick="openModal(' + idx + ')">'
+      + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+      + '<td style="font-weight:600;color:var(--b);">' + r.deptName + '</td>'
+      + '<td><span class="chip">' + (role.code || '—') + '</span></td>'
+      + '<td style="font-weight:500;">' + hl(role.role) + '</td>'
+      + '<td>' + hl(role.name) + '</td>'
+      + '<td style="font-family:monospace;font-size:.73rem;color:var(--muted);">' + hl(role.idno) + '</td>'
+      + '<td style="text-align:center;">' + agBadge + '</td>'
+      + '</tr>';
+  }).join('');
+
+  document.getElementById('main-content').innerHTML =
+    '<div class="sec-title" style="margin-bottom:.15rem;">🔍 Search results for "' + q + '"</div>'
+    + '<div class="sec-sub" style="margin-bottom:.7rem;">'
+    + (rows.length > 0
+        ? rows.length + ' result' + (rows.length !== 1 ? 's' : '') + ' · Click a row to view full department report'
+        : 'No matching names, ID numbers, or roles found.')
+    + '</div>'
+    + (rows.length > 0
+        ? '<div class="tbl-wrap"><table class="data-tbl"><thead><tr>'
+          + '<th style="width:36px;text-align:center;">No.</th>'
+          + '<th>Department</th><th>FC Code</th><th>Role</th><th>Name</th>'
+          + '<th>ID No.</th><th style="text-align:center;">Avg Gap</th>'
+          + '</tr></thead><tbody>' + trows + '</tbody></table></div>'
+        : '<div style="padding:2rem;text-align:center;color:var(--muted);font-size:.85rem;">No results found.</div>'
+      );
+}
+
+// ── DEPARTMENT DETAIL MODAL ───────────────────────────
+function openModal(idx){
+  const r = reports[idx];
+  if(!r) return;
+
+  // Highlight sidebar item
+  document.querySelectorAll('.sbi').forEach(e => e.classList.remove('active'));
+  document.getElementById('sbi' + idx)?.classList.add('active');
+
+  document.getElementById('mtitle').textContent = '🎯 ' + r.deptName + ' — ' + r.date;
+
+  // Build competency header
+  const hc = r.allComps.map(c =>
+    '<th colspan="3"'
+    + ' data-comp="' + c.replace(/"/g,'&quot;') + '"'
+    + ' onclick="openCompDict(this.getAttribute(\'data-comp\'))"'
+    + ' style="cursor:pointer;text-align:center;border-left:2px solid rgba(255,255,255,.2);padding:.35rem .18rem;white-space:nowrap;position:sticky;top:0;z-index:3;background:var(--b);color:#fff;" title="' + c + '">'
+    + (c.length > 12 ? c.substring(0,10) + '…' : c) + '</th>'
+  ).join('');
+
+  const sh = r.allComps.map(() =>
+    '<th style="font-size:.57rem;font-weight:600;text-align:center;background:#2d5090;border-left:2px solid rgba(255,255,255,.2);padding:.22rem .1rem;color:#fff;position:sticky;top:28px;z-index:3;">Req</th>'
+    + '<th style="font-size:.57rem;font-weight:600;text-align:center;background:#1a7040;padding:.22rem .1rem;color:#fff;position:sticky;top:28px;z-index:3;">Cur</th>'
+    + '<th style="font-size:.57rem;font-weight:600;text-align:center;background:#5a3a7a;padding:.22rem .1rem;color:#fff;position:sticky;top:28px;z-index:3;">Gap</th>'
+  ).join('');
+
+  const trows = r.roles.map((role, ri) => {
+    const rc = r.cur[ri] || {};
+    const cells = r.allComps.map(c => {
+      const req = role.competencies[c] || 0;
+      const cv  = rc[c] || 0;
+      const diff = (req && cv) ? cv - req : null;
+      const gt = diff === null ? '–' : diff === 0 ? '✔' : diff > 0 ? '+' + diff : String(diff);
+      const gc = diff === null ? '#aaa' : diff >= 0 ? 'var(--green)' : 'var(--red)';
+      return '<td style="text-align:center;border-left:2px solid var(--line);background:#f0f4ff;padding:.24rem .1rem;">' + pill(req) + '</td>'
+           + '<td style="text-align:center;background:#f0fff4;padding:.24rem .1rem;">' + pill(cv) + '</td>'
+           + '<td style="text-align:center;background:#fdf0ff;font-weight:700;color:' + gc + ';font-size:.72rem;padding:.24rem .1rem;">' + gt + '</td>';
+    }).join('');
+    return '<tr>'
+      + '<td style="padding:.3rem .42rem;max-width:148px;overflow:hidden;"><span class="chip" style="max-width:136px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle;">' + (role.code || '—') + '</span></td>'
+      + '<td style="padding:.3rem .42rem;font-weight:500;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis;">' + role.role + '</td>'
+      + '<td style="padding:.3rem .42rem;white-space:nowrap;">' + role.name + '</td>'
+      + '<td style="padding:.3rem .42rem;font-family:monospace;font-size:.72rem;color:var(--muted);text-align:center;">' + role.idno + '</td>'
+      + cells + '</tr>';
+  }).join('');
+
+  const lvlKey = [1,2,3,4,5,6].map(n =>
+    '<span class="lvl l' + n + '" style="width:20px;height:20px;font-size:.7rem;">' + n + '</span>'
+  ).join('');
+
+  const chartCards = r.roles.map((role, ri) =>
+    '<div class="cc"><div class="cn">' + (role.code || '—') + ' · ' + role.role
+    + (role.name ? ' · <em>' + role.name + '</em>' : '') + '</div>'
+    + '<div style="height:145px;"><canvas id="mc' + idx + '_' + ri + '"></canvas></div></div>'
+  ).join('');
+
+  document.getElementById('mbody').innerHTML =
+    '<div style="font-size:.76rem;color:var(--muted);margin-bottom:.65rem;">'
+    + r.roles.length + ' roles · ' + r.allComps.length + ' competencies · <em>' + r.fname + '</em></div>'
+    + '<div class="mtbl-wrap"><table class="mtbl">'
+    + '<thead><tr>'
+    + '<th rowspan="2" style="width:148px;max-width:148px;vertical-align:middle;padding:.42rem .42rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;top:0;z-index:4;background:#fdffe0;">FC Code</th>'
+    + '<th rowspan="2" style="width:190px;max-width:190px;vertical-align:middle;padding:.42rem .42rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;top:0;z-index:4;background:#fdffe0;">Role</th>'
+    + '<th rowspan="2" style="min-width:125px;vertical-align:middle;padding:.42rem .42rem;position:sticky;top:0;z-index:4;background:#fdffe0;">Name</th>'
+    + '<th rowspan="2" style="min-width:85px;vertical-align:middle;padding:.42rem .42rem;position:sticky;top:0;z-index:4;background:#fdffe0;">ID No.</th>'
+    + hc + '</tr><tr>' + sh + '</tr></thead>'
+    + '<tbody>' + trows + '</tbody></table></div>'
+    + '<div class="lk"><strong>LEVEL KEY:</strong>' + lvlKey + '= required proficiency</div>'
+    + '<div class="charts-section">'
+    + '<div class="charts-title">📊 Competency Gap Charts — ' + r.deptName + '</div>'
+    + '<div class="cg">' + chartCards + '</div></div>';
+
+  document.getElementById('modal').classList.add('open');
+
+  // Destroy old charts
+  Object.values(_ch).forEach(c => { try{ c.destroy(); }catch(e){} });
+  _ch = {};
+
+  setTimeout(() => {
+    r.roles.forEach((role, ri) => {
+      const cv = document.getElementById('mc' + idx + '_' + ri);
+      if(!cv) return;
+      const rc = r.cur[ri] || {};
+      const labels  = r.allComps.map(c => c.length > 13 ? c.substring(0,11) + '…' : c);
+      const reqVals = r.allComps.map(c => role.competencies[c] || 0);
+      const curVals = r.allComps.map(c => rc[c] || 0);
+      const gapVals = reqVals.map((req, i) => Math.max(0, req - (curVals[i] || 0)));
+      const bgColors = reqVals.map(v => LC[v] || '#eee');
+
+      _ch[idx + '_' + ri] = new Chart(cv, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label:'Required',  data: reqVals, backgroundColor: bgColors, borderWidth:0, stack:'req' },
+            { label:'Current',   data: curVals, backgroundColor:'#9b59b6',  borderWidth:0, stack:'cur' },
+            { label:'Gap',       data: gapVals, backgroundColor:'#e74c3c',  borderWidth:0, stack:'cur' }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{
+              position:'top',
+              labels:{
+                font:{size:10},
+                generateLabels: () => [
+                  {text:'Required', fillStyle:'#03ffb7', strokeStyle:'transparent', lineWidth:0},
+                  {text:'Current',  fillStyle:'#9b59b6', strokeStyle:'transparent', lineWidth:0},
+                  {text:'Gap (shortfall)', fillStyle:'#e74c3c', strokeStyle:'transparent', lineWidth:0}
+                ]
+              }
+            },
+            tooltip:{
+              callbacks:{
+                label: ctx => {
+                  if(ctx.dataset.label==='Required') return 'Required: Level ' + ctx.raw;
+                  if(ctx.dataset.label==='Current')  return 'Current: Level '  + ctx.raw;
+                  if(ctx.dataset.label==='Gap') return ctx.raw > 0 ? 'Gap: ' + ctx.raw + ' level' + (ctx.raw>1?'s':'') + ' below required' : '';
+                  return '';
+                }
+              }
+            }
+          },
+          scales:{
+            y:{ min:0, max:6, ticks:{stepSize:1, font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+            x:{ ticks:{font:{size:9}, maxRotation:35} }
+          }
+        }
+      });
+    });
+  }, 80);
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.querySelectorAll('.sbi').forEach(e => e.classList.remove('active'));
+}
+
+// ── EDIT DEPT NAME ────────────────────────────────────
+function editDeptName(idx){
+  const r = reports[idx];
+  if(!r) return;
+  const newName = prompt('Edit department name:', r.deptName);
+  if(newName === null) return;
+  const trimmed = newName.trim();
+  if(!trimmed || trimmed === r.deptName) return;
+  r.deptName = trimmed;
+  rebuildSidebar();
+  renderCurrentTab();
+  toast('✏️ Renamed to: ' + trimmed);
+}
+
+// ── PRINT MODAL ──────────────────────────────────────
+function printModal(){
+  const title   = document.getElementById('mtitle').textContent;
+  const mbody   = document.getElementById('mbody');
+  const canvases = mbody.querySelectorAll('canvas');
+  const snapshots = [];
+  canvases.forEach(c => {
+    const img = document.createElement('img');
+    img.src = c.toDataURL('image/png', 1.0);
+    img.style.cssText = 'width:100%;height:140px;display:block;object-fit:fill;';
+    c.parentNode.insertBefore(img, c.nextSibling);
+    c.style.display = 'none';
+    snapshots.push({c, img});
+  });
+  const body = mbody.innerHTML;
+  snapshots.forEach(({c, img}) => { c.style.display=''; img.remove(); });
+
+  const w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + title + '</title>'
+    + '<style>*{box-sizing:border-box;}body{font-family:system-ui,sans-serif;padding:.6rem;font-size:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + 'h2{color:#1a3a6b;margin-bottom:.35rem;font-size:12px;}'
+    + 'table{border-collapse:collapse;width:100%;font-size:9px;margin-bottom:.5rem;}'
+    + 'th,td{padding:2px 4px;border:1px solid #ccc;}'
+    + 'thead tr:first-child th{background:#fdffe0;color:#000;border-bottom:2px solid #1a3a6b;}'
+    + 'thead tr:nth-child(2) th{background:#e8eef8;color:#000;}'
+    + 'tbody tr{background:#fdffe0;}'
+    + '.chip{background:#eef2ff;color:#000;padding:1px 3px;border-radius:3px;font-family:monospace;font-size:8px;}'
+    + '.lvl{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-weight:700;font-size:8px;}'
+    + '.l1{background:#edfad4;}.l2{background:#93fa2d;}.l3{background:#03ffb7;}.l4{background:#f7ef77;}.l5{background:#fa8c05;}.l6{background:#0099ff;}'
+    + '.lk{font-size:8px;color:#666;margin:.3rem 0;display:flex;align-items:center;gap:.2rem;flex-wrap:wrap;}'
+    + '.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.4rem;}'
+    + '.cc{border:1px solid #ddd;border-radius:5px;padding:.35rem;page-break-inside:avoid;}'
+    + '.cn{font-size:8px;font-weight:700;color:#1a3a6b;margin-bottom:.2rem;}'
+    + 'img{width:100%!important;height:140px!important;display:block;object-fit:fill;}'
+    + '@media print{@page{size:A4 landscape;margin:.5cm;}}'
+    + '</style></head><body><h2>' + title + '</h2>' + body + '</body></html>');
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+// ── EXPORT MODAL CSV ─────────────────────────────────
+function exportModalCSV(){
+  const idx = reports.findIndex((r,i) => document.getElementById('sbi'+i)?.classList.contains('active'));
+  const r = idx >= 0 ? reports[idx] : null;
+  if(!r){ toast('⚠️ No report selected'); return; }
+  const cols = ['FC Code','Role','Name','ID No.', ...r.allComps.flatMap(c => [c+' Req', c+' Cur', c+' Gap'])];
+  const lines = [cols.map(c => '"'+c+'"').join(',')];
+  r.roles.forEach((role, ri) => {
+    const rc = r.cur[ri] || {};
+    const vals = [role.code, role.role, role.name, role.idno,
+      ...r.allComps.flatMap(c => {
+        const req = role.competencies[c] || '';
+        const cv  = rc[c] || '';
+        const gap = (req && cv) ? (cv - req) : '';
+        return [req, cv, gap];
+      })
+    ];
+    lines.push(vals.map(v => '"'+v+'"').join(','));
+  });
+  dlCSV(r.deptName + '_' + r.date + '.csv', lines.join('\n'));
+}
+
+// ── EXPORT ALL CSV ────────────────────────────────────
+function exportCSV(){
+  const active = reports.filter(x => x);
+  if(!active.length){ toast('⚠️ No reports loaded'); return; }
+  const lines = ['"Department","FC Code","Role","Name","ID No.","Date"'];
+  active.sort((a,b) => a.deptName.localeCompare(b.deptName)).forEach(r => {
+    r.roles.forEach((role, ri) => {
+      const rc = r.cur[ri] || {};
+      lines.push([r.deptName, role.code, role.role, role.name, role.idno, r.date]
+        .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
+    });
+  });
+  dlCSV('FC_All_Roles_' + new Date().toISOString().slice(0,10) + '.csv', lines.join('\n'));
+}
+
+function dlCSV(filename, content){
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+
+// ── LOGO EMBED ────────────────────────────────────────
+function _getLogoData(){
+  if(window._LOGO_DATA) return window._LOGO_DATA;
+  const img = document.querySelector('img.hdr-logo');
+  if(!img || !img.complete || !img.naturalWidth) return '';
+  try {
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    c.getContext('2d').drawImage(img, 0, 0);
+    window._LOGO_DATA = c.toDataURL();
+    return window._LOGO_DATA;
+  } catch(e){ return ''; }
+}
+
+// ── NAV CARD MODALS ───────────────────────────────────
+function openNavModal(type){
+  const active = reports.filter(x => x);
+  if(!active.length){ toast('⚠️ No reports loaded'); return; }
+  document.querySelectorAll('.sbi').forEach(e => e.classList.remove('active'));
+  const mtitle = document.getElementById('mtitle');
+  const mbody  = document.getElementById('mbody');
+
+  if(type === 'depts'){
+    const sorted = [...active].sort((a,b) => a.deptName.localeCompare(b.deptName));
+    mtitle.textContent = '🏢 Departments — ' + sorted.length;
+    const rows = sorted.map((r, i) => {
+      const idx = reports.indexOf(r);
+      const rwc = Object.keys(r.cur).length;
+      const pct = r.roles.length ? Math.round(rwc / r.roles.length * 100) : 0;
+      return '<tr style="cursor:pointer;" onclick="openModal(' + idx + ')">'
+        + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+        + '<td style="font-weight:700;color:var(--b);">' + r.deptName + '</td>'
+        + '<td style="text-align:center;">' + r.roles.length + '</td>'
+        + '<td style="text-align:center;">' + r.allComps.length + '</td>'
+        + '<td style="text-align:center;">' + rwc + '</td>'
+        + '<td style="text-align:center;">' + pct + '%</td>'
+        + '<td style="text-align:center;font-size:.71rem;">' + r.date + '</td>'
+        + '</tr>';
+    }).join('');
+    mbody.innerHTML = '<div class="mtbl-wrap"><table class="mtbl"><thead><tr>'
+      + '<th>No.</th><th>Department</th><th style="text-align:center;">Roles</th>'
+      + '<th style="text-align:center;">Comps</th><th style="text-align:center;">w/ Current</th>'
+      + '<th style="text-align:center;">Coverage</th><th>Date</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div style="font-size:.7rem;color:var(--muted);margin-top:.45rem;">Click a row to view full department report.</div>';
+  }
+  else if(type === 'roles'){
+    const all = [];
+    active.forEach(r => r.roles.forEach(role => all.push({ dept: r.deptName, role })));
+    all.sort((a,b) => a.dept.localeCompare(b.dept) || a.role.role.localeCompare(b.role.role));
+    mtitle.textContent = '👥 Total Roles — ' + all.length;
+    const rows = all.map((item, i) =>
+      '<tr>'
+      + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+      + '<td style="font-weight:600;color:var(--b);">' + item.dept + '</td>'
+      + '<td><span class="chip">' + (item.role.code || '—') + '</span></td>'
+      + '<td style="font-weight:500;">' + item.role.role + '</td>'
+      + '<td>' + item.role.name + '</td>'
+      + '<td style="font-family:monospace;font-size:.71rem;color:var(--muted);">' + item.role.idno + '</td>'
+      + '</tr>'
+    ).join('');
+    mbody.innerHTML = '<div class="mtbl-wrap"><table class="mtbl"><thead><tr>'
+      + '<th>No.</th><th>Department</th><th>FC Code</th><th>Role</th><th>Name</th><th>ID No.</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  else if(type === 'comps'){
+    const compMap = {};
+    active.forEach(r => {
+      r.allComps.forEach(c => {
+        if(!compMap[c]) compMap[c] = { depts:0, reqSum:0, reqCount:0 };
+        compMap[c].depts++;
+        r.roles.forEach(role => {
+          const rv = role.competencies[c];
+          if(rv){ compMap[c].reqSum += rv; compMap[c].reqCount++; }
+        });
+      });
+    });
+    const entries = Object.entries(compMap).sort((a,b) => a[0].localeCompare(b[0]));
+    mtitle.textContent = '📚 Unique Competencies — ' + entries.length;
+    const rows = entries.map(([c, d], i) =>
+      '<tr>'
+      + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+      + '<td style="font-weight:600;">' + c + '</td>'
+      + '<td style="text-align:center;">' + d.depts + '</td>'
+      + '<td style="text-align:center;">' + (d.reqCount ? (d.reqSum / d.reqCount).toFixed(2) : '—') + '</td>'
+      + '</tr>'
+    ).join('');
+    mbody.innerHTML = '<div class="mtbl-wrap"><table class="mtbl"><thead><tr>'
+      + '<th>No.</th><th>Competency</th>'
+      + '<th style="text-align:center;">Used in Depts</th>'
+      + '<th style="text-align:center;">Avg Required Level</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  else if(type === 'curdata'){
+    const rows = [];
+    active.forEach(r => {
+      r.roles.forEach((role, ri) => {
+        if(!r.cur[ri]) return;
+        const rc = r.cur[ri]; let gs = 0, gc = 0;
+        r.allComps.forEach(c => {
+          const req = role.competencies[c] || 0, cv = rc[c] || 0;
+          if(req && cv){ gs += cv - req; gc++; }
+        });
+        rows.push({ dept: r.deptName, role, ag: gc ? gs / gc : null });
+      });
+    });
+    rows.sort((a,b) => a.dept.localeCompare(b.dept) || a.role.role.localeCompare(b.role.role));
+    mtitle.textContent = '📋 Roles with Current Data — ' + rows.length;
+    const trows = rows.map((item, i) => {
+      const v = item.ag !== null ? (item.ag >= 0 ? '+' + item.ag.toFixed(2) : item.ag.toFixed(2)) : null;
+      const badge = v === null ? '<span class="badge bk">—</span>'
+        : parseFloat(v) >= 0 ? '<span class="badge bg">' + v + '</span>'
+        : '<span class="badge br">' + v + '</span>';
+      return '<tr>'
+        + '<td style="text-align:center;color:var(--muted);font-size:.72rem;">' + (i+1) + '</td>'
+        + '<td style="font-weight:600;color:var(--b);">' + item.dept + '</td>'
+        + '<td><span class="chip">' + (item.role.code || '—') + '</span></td>'
+        + '<td style="font-weight:500;">' + item.role.role + '</td>'
+        + '<td>' + item.role.name + '</td>'
+        + '<td style="font-family:monospace;font-size:.71rem;color:var(--muted);">' + item.role.idno + '</td>'
+        + '<td style="text-align:center;">' + badge + '</td>'
+        + '</tr>';
+    }).join('');
+    mbody.innerHTML = '<div class="mtbl-wrap"><table class="mtbl"><thead><tr>'
+      + '<th>No.</th><th>Department</th><th>FC Code</th><th>Role</th><th>Name</th><th>ID No.</th>'
+      + '<th style="text-align:center;">Avg Gap</th>'
+      + '</tr></thead><tbody>' + trows + '</tbody></table></div>';
+  }
+
+  document.getElementById('modal').classList.add('open');
+}
+
+// ── INJECT HELPER — injects <script> right after <head> so data is
+//   available before the main script block executes on reload
+function _injectInHead(html, scriptContent){
+  const hi = html.indexOf('>', html.indexOf('<head')) + 1;
+  if(hi > 0) return html.slice(0, hi) + '<script>' + scriptContent + '<\/script>' + html.slice(hi);
+  return html;
+}
+
+// ── SAVE HTML ─────────────────────────────────────────
+function saveHTML(){
+  // Sync body-embedded database before capturing outerHTML
+  const _embDbSH = document.getElementById('embedded-db');
+  if(window._DB_B64 && _embDbSH) _embDbSH.textContent = window._DB_B64;
+  const active = reports.filter(x => x);
+  let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  let data = '';
+  if(active.length){
+    const rj = JSON.stringify(active).replace(/<\/script>/gi, '<\\/script>');
+    data += 'window._SNAPSHOT=true;window._REPORTS_DATA=' + rj + ';';
+  }
+  // _DB_B64 is now carried in body #embedded-db — no head injection needed
+  const logoData = _getLogoData();
+  if(logoData){
+    html = html.replace('src="FCF_Logo_2_S.png"', 'src="' + logoData + '"');
+    data += 'window._LOGO_DATA=' + JSON.stringify(logoData) + ';';
+  }
+  if(data) html = _injectInHead(html, data);
+  var _n=new Date(),_p=function(n){return String(n).padStart(2,'0');};
+  var _ds=_n.getFullYear()+'-'+_p(_n.getMonth()+1)+'-'+_p(_n.getDate());
+  var _ts='Time_'+_p(_n.getHours())+_p(_n.getMinutes());
+  var _fname='HRBP_FC_Aggregated_Report_V2.2_'+_ds+'_'+_ts+'.html';
+  _dlHTML(html, _fname);
+  // ── Auto-update manifest.json ──────────────────────────
+  fetch('updated_status/manifest.json')
+    .then(function(r){ return r.ok ? r.json() : {files:[]}; })
+    .catch(function(){ return {files:[]}; })
+    .then(function(manifest){
+      var files = Array.isArray(manifest.files) ? manifest.files : [];
+      if(files.indexOf(_fname) === -1) files.push(_fname);
+      // Sort by embedded date+time (YYYY-MM-DD_Time_HHMM) so newest is always first
+      // regardless of version number in the filename.
+      function _dtKey(f){ var m=f.match(/_(\d{4}-\d{2}-\d{2})_Time_(\d{4})/); return m ? m[1]+m[2] : f; }
+      files.sort(function(a,b){ return _dtKey(b).localeCompare(_dtKey(a)); });
+      var blob = new Blob([JSON.stringify({files:files},null,2)],{type:'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'manifest.json';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      toast('✅ Saved HTML + manifest.json — upload both to updated_status/');
+    });
+}
+
+// ── SAVE EMBEDDED ─────────────────────────────────────
+function startSaveEmbedded(){
+  if(window._DB_B64){
+    doSaveEmbedded(window._DB_B64);
+  } else {
+    fetch(_DB_URL)
+      .then(r => r.text())
+      .then(text => {
+        window._DB_B64 = btoa(unescape(encodeURIComponent(text)));
+        doSaveEmbedded(window._DB_B64);
+      })
+      .catch(() => doSaveEmbedded(''));
+  }
+}
+
+function doSaveEmbedded(dbB64){
+  // Update body-embedded database before capturing outerHTML (overwrites previous copy)
+  if(dbB64){
+    window._DB_B64 = dbB64;
+    const _embDbSE = document.getElementById('embedded-db');
+    if(_embDbSE) _embDbSE.textContent = dbB64;
+  }
+  const rj = JSON.stringify(reports.filter(x => x)).replace(/<\/script>/gi, '<\\/script>');
+  let data = 'window._REPORTS_DATA=' + rj + ';';
+  // _DB_B64 is now carried in body #embedded-db — no head injection needed
+  const logoData = _getLogoData();
+  if(logoData) data += 'window._LOGO_DATA=' + JSON.stringify(logoData) + ';';
+  let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  if(logoData) html = html.replace('src="FCF_Logo_2_S.png"', 'src="' + logoData + '"');
+  html = _injectInHead(html, data);
+  const filename = location.pathname.split('/').pop() || 'FC_Aggregator_10.html';
+  _dlHTML(html, filename);
+  document.getElementById('db-file-input').value = '';
+  toast(dbB64 ? '✅ Saved with embedded Database' : '✅ Saved');
+}
+
+function _dlHTML(html, filename){
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── UTILITY ──────────────────────────────────────────
+function pill(v){
+  if(!v || v < 1 || v > 6) return '<span class="ln">–</span>';
+  return '<span class="lvl l' + v + '">' + v + '</span>';
+}
+
+/// ── REVISED DATABASE WINDOW (v10.1) ──────────────────
+function openDBView(tab){
+  const sw = Math.round(window.screen.width * 0.95);
+  const sh = Math.round(window.screen.height * 0.95);
+  const opts = 'width=' + sw + ',height=' + sh + ',resizable=yes,scrollbars=yes,toolbar=no,menubar=no';
+  // Each tab gets its own named window so they never collide with each other
+  const winName = 'FC_DB_' + tab;
+  if(window._DB_B64){
+    // Embedded mode — blob URL hash is silently dropped in some browsers;
+    // send a postMessage after the window loads as a reliable fallback.
+    try {
+      const raw = decodeURIComponent(escape(atob(window._DB_B64)));
+      const blob = new Blob([raw], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url + '#' + tab, winName, opts);
+      if(w){
+        const msg = tab === 'dict' ? {action:'openDict'} : {action:'showView', tab: tab};
+        const send = function(){ try{ w.postMessage(msg,'*'); }catch(e){} };
+        w.addEventListener('load', send);
+        setTimeout(send, 1000);
+      }
+    } catch(e){ toast('⚠️ Could not open embedded database'); }
+  } else {
+    window.open(_DB_URL + '#' + tab, winName, opts);
+  }
+}
+
+// ── REVISED SAVE EMBEDDED (v10.1) ────────────────────
+function startSaveEmbedded(){
+  if(window._DB_B64){
+    doSaveEmbedded(window._DB_B64);
+  } else {
+    fetch(_DB_URL)
+      .then(r => r.text())
+      .then(text => {
+        window._DB_B64 = btoa(unescape(encodeURIComponent(text)));
+        doSaveEmbedded(window._DB_B64);
+      })
+      .catch(() => doSaveEmbedded(''));
+  }
+}
+
+let _toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── HELP MODAL ────────────────────────────────────────
+function openHelp(){
+  document.getElementById('help-overlay').classList.add('open');
+  document.getElementById('help-body').scrollTop = 0;
+}
+function closeHelp(){
+  document.getElementById('help-overlay').classList.remove('open');
+}
+function helpScrollTo(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+// Keyboard: Esc closes help overlay
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closeHelp();
+});
+
+// ── RESTORE SAVED STATE ───────────────────────────────
+// Injected by saveEmbedded(): window._REPORTS_DATA holds serialized reports
+if(window._REPORTS_DATA && window._REPORTS_DATA.length){
+  window._REPORTS_DATA.forEach(r => { if(r) reports.push(r); });
+  rebuildSidebar();
+  updateStats();
+  renderCurrentTab();
+}
+if(window._LOGO_DATA){
+  const _li = document.querySelector('img.hdr-logo');
+  if(_li){ _li.src = window._LOGO_DATA; _li.style.display = ''; }
+}
+if(window._SNAPSHOT){
+  document.querySelectorAll('.snap-hide').forEach(el => el.style.display = 'none');
+}
+
+
+// ── COMP DICT POPUP (opens database/database.html#dict=Name) ─────────────────
+function openCompDict(name) {
+  const opts = 'width=1100,height=820,resizable=yes,scrollbars=yes,toolbar=no,menubar=no';
+  const hash = 'dict=' + encodeURIComponent(name);
+  const msg  = {action:'openDict', name: name};
+  const send = function(w){ return function(){ try{ w.postMessage(msg,'*'); }catch(e){} }; };
+  if (window._DB_B64) {
+    try {
+      const raw = decodeURIComponent(escape(atob(window._DB_B64)));
+      const blob = new Blob([raw], {type:'text/html'});
+      const url  = URL.createObjectURL(blob);
+      const w = window.open(url + '#' + hash, 'FC_Dict', opts);
+      // postMessage fallback: blob URL hash silently dropped by some browsers
+      if (w) { const fn = send(w); w.addEventListener('load', fn); setTimeout(fn, 1000); }
+    } catch(e) { toast('⚠️ Could not open embedded database'); }
+  } else {
+    const w = window.open(_DB_URL + '#' + hash, 'FC_Dict', opts);
+    if (w) { const fn = send(w); w.addEventListener('load', fn); setTimeout(fn, 1000); }
+  }
+}
+</script>
+<!-- Body-embedded database (base64). Populated on first load from database/database.html.
+     Carried automatically in every Save / Save HTML output. Safe in <script> because
+     base64 characters [A-Za-z0-9+/=] never produce a </script> sequence. -->
+<script id="embedded-db" type="text/db-data"></script>
+</body>
+</html>
